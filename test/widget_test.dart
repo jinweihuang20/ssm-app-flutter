@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:ssmflutter/main.dart';
+import 'package:ssmflutter/MathLib/FeatureCalculator.dart';
 
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
@@ -26,5 +27,10 @@ void main() {
     // Verify that our counter has incremented.
     expect(find.text('0'), findsNothing);
     expect(find.text('1'), findsOneWidget);
+  });
+
+  test('stasify test', () async {
+    var fft = toFFT([1.2, 32, 42, 42, 123, 241, 9, 9]);
+    expect(4, fft.length);
   });
 }

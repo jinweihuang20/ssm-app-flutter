@@ -1,19 +1,22 @@
-// ignore_for_file: unnecessary_this, no_logic_in_create_state, avoid_print
+// ignore_for_file: unnecessary_this, no_logic_in_create_state, avoid_print, non_constant_identifier_names
+import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'dart:io';
-import 'dart:async';
-import 'package:charts_flutter/flutter.dart' as charts;
-
-import 'dart:math' as math;
+import 'package:ssmflutter/SSMModule/FeatureDisplay.dart';
 import 'drawer.dart';
 import 'SSMModule/module.dart';
+import 'dart:async';
+
+import 'package:charts_flutter/flutter.dart' as charts;
+import 'Chartslb/LineChart.dart';
+import 'SSMModule/MeasureRangeDropDownBtn.dart';
+import 'package:ssmflutter/SSMModule/emulator.dart' as ssm_emulator;
 
 class DataPage extends StatefulWidget {
-  const DataPage({Key? key, required this.title, this.ssmModule})
-      : super(key: key);
+  const DataPage({Key? key, required this.title, this.ssmModule}) : super(key: key);
   final String title;
   final Module? ssmModule;
+
   @override
   State<DataPage> createState() => _DataPageState(ssmModule: this.ssmModule);
 }
@@ -24,10 +27,40 @@ class _DataPageState extends State<DataPage> {
   final Module? ssmModule;
 
   var range;
+  final Color pauseBgColor = Colors.grey;
+  final Color normalBgColor = Colors.white;
+  Color bgColor = Colors.white;
+
+  var _pauseFlag = false;
+
+  get pauseFlag {
+    return _pauseFlag;
+  }
+
+  set pauseFlag(value) {
+    _pauseFlag = value;
+    bgColor = value ? pauseBgColor : normalBgColor;
+  }
 
   List<double> accX = [];
   List<double> accY = [];
   List<double> accZ = [];
+
+  List<LinearSales> avgXLineData = [];
+  List<LinearSales> avgYLineData = [];
+  List<LinearSales> avgZLineData = [];
+  var seriesList = [
+    charts.Series<LinearSales, DateTime>(
+      id: 'Sales',
+      domainFn: (LinearSales sales, _) => sales.time,
+      measureFn: (LinearSales sales, _) => sales.value,
+      data: [],
+    )
+  ];
+
+  var accSeries = GetAccRawSeries([], [], []);
+  var fftSeries = GetFFTSeries([], [], [], 8000);
+  Features features = Features();
 
   get revAccDataLen_X {
     return accX.length;
@@ -67,7 +100,13 @@ class _DataPageState extends State<DataPage> {
 
   get module_address => ssmModule?.address;
 
-  get connected => ssmModule?.connected;
+  get connected {
+    if (ssmModule == null)
+      return false;
+    else
+      return ssmModule?.connected;
+  }
+
   set connected(val) {
     ssmModule?.connected = val;
   }
@@ -80,40 +119,89 @@ class _DataPageState extends State<DataPage> {
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
-      drawer: drawer,
-      floatingActionButtonLocation:
-          FloatingActionButtonLocation.miniCenterDocked,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
+      drawer: DrawerWidget(),
+      persistentFooterButtons: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Padding(
-              padding: const EdgeInsets.only(left: 10, top: 10),
+              padding: const EdgeInsets.only(right: 10),
+              child: ElevatedButton(
+                onPressed: pauseFlag ? null : () => {pauseFlag = true},
+                child: const Text('Pause'),
+                style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.red)),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: !pauseFlag ? null : () => {pauseFlag = false},
+              child: const Text('Resume'),
+            )
+          ],
+        )
+      ],
+      floatingActionButtonLocation: FloatingActionButtonLocation.miniCenterDocked,
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 10, top: 2),
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Icon(
-                    connected ? Icons.check : Icons.error,
-                    color: connected ? Colors.green : Colors.red,
-                  ),
-                  Text('$module_address' ' | 量測範圍:$range' 'G'),
+                  TextButton.icon(onPressed: () => {}, icon: Icon(connected ? Icons.check : Icons.error), label: Text('$module_address')),
+                  MeasureRangeDropDownBtn(
+                    onRangeSelected: _setRange,
+                  )
                 ],
               ),
             ),
-            Text(
-                'Rev> X:$revAccDataLen_X Y:$revAccDataLen_Y Z:$revAccDataLen_Z'),
-            Text('Average> X:$avgAccX_UiDisplay'),
-            Text('Average> Y:$avgAccY_UiDisplay'),
-            Text('Average> Z:$avgAccZ_UiDisplay'),
-            ElevatedButton(onPressed: send, child: const Text('send')),
-            ElevatedButton(
-                onPressed: closeSocket, child: const Text('CLOSE SCOKET')),
-            ElevatedButton(
-                onPressed: reConnect, child: const Text('RE-CONNECT')),
-            Column(
-              children: <Widget>[
-                const Text('chart here'),
-              ],
-            )
+            Card(
+              child: SizedBox(
+                height: 150,
+                child: charts.LineChart(
+                  accSeries,
+                  animate: false,
+                  domainAxis: const charts.NumericAxisSpec(
+                      tickProviderSpec: charts.BasicNumericTickProviderSpec(
+                        zeroBound: true,
+                      ),
+                      renderSpec: charts.GridlineRendererSpec(lineStyle: charts.LineStyleSpec(color: charts.Color(r: 11, g: 11, b: 11, a: 9)))),
+                  behaviors: [
+                    charts.SeriesLegend(position: charts.BehaviorPosition.end, entryTextStyle: const charts.TextStyleSpec(fontSize: 11)),
+                    charts.ChartTitle('ACC RAW DATA', titleStyleSpec: const charts.TextStyleSpec(fontSize: 14)),
+                    charts.ChartTitle('G', behaviorPosition: charts.BehaviorPosition.start, titleStyleSpec: const charts.TextStyleSpec(fontSize: 14)),
+                    charts.ChartTitle('INDEX', behaviorPosition: charts.BehaviorPosition.bottom, titleStyleSpec: const charts.TextStyleSpec(fontSize: 14))
+                  ],
+                ),
+              ),
+            ),
+            const Divider(
+              thickness: 1,
+            ),
+            Card(
+              child: SizedBox(
+                height: 150,
+                child: charts.LineChart(
+                  fftSeries,
+                  animate: false,
+                  domainAxis: const charts.NumericAxisSpec(
+                      tickProviderSpec: charts.BasicNumericTickProviderSpec(
+                        zeroBound: true,
+                      ),
+                      renderSpec: charts.GridlineRendererSpec(lineStyle: charts.LineStyleSpec(color: charts.Color(r: 11, g: 11, b: 11, a: 9)))),
+                  behaviors: [
+                    charts.SeriesLegend(position: charts.BehaviorPosition.end, entryTextStyle: const charts.TextStyleSpec(fontSize: 11)),
+                    charts.ChartTitle('FFT', titleStyleSpec: const charts.TextStyleSpec(fontSize: 14)),
+                    charts.ChartTitle('Mag(G)', behaviorPosition: charts.BehaviorPosition.start, titleStyleSpec: const charts.TextStyleSpec(fontSize: 14)),
+                    charts.ChartTitle('Freq(Hz)', behaviorPosition: charts.BehaviorPosition.bottom, titleStyleSpec: const charts.TextStyleSpec(fontSize: 14))
+                  ],
+                ),
+              ),
+            ),
+            const Divider(
+              thickness: 1,
+            ),
+            FeatureDisplay(features),
           ],
         ),
       ),
@@ -136,11 +224,8 @@ class _DataPageState extends State<DataPage> {
   void dispose() {
     print('page disposed');
     ssmModule?.close();
+    ssm_emulator.restart();
     super.dispose();
-  }
-
-  void send() {
-    ssmModule?.readParameter();
   }
 
   void closeSocket() {
@@ -156,12 +241,46 @@ class _DataPageState extends State<DataPage> {
   }
 
   void accDataHandle(AccDataRevDoneEvent data) {
-    print('data ready, rend this');
-    print(data.accData_X.length);
     setState(() {
       accX = data.accData_X;
       accY = data.accData_Y;
       accZ = data.accData_Z;
+
+      if (this.avgXLineData.length > 30) {
+        this.avgXLineData.removeAt(0);
+        this.avgYLineData.removeAt(0);
+        this.avgZLineData.removeAt(0);
+      }
+      this.avgXLineData.add(LinearSales(DateTime.now(), avgAccX));
+      this.avgYLineData.add(LinearSales(DateTime.now(), avgAccY));
+      this.avgZLineData.add(LinearSales(DateTime.now(), avgAccZ));
+
+      if (pauseFlag) return;
+
+      features = data.features;
+
+      seriesList = [
+        charts.Series<LinearSales, DateTime>(
+          id: 'Avg-X',
+          domainFn: (LinearSales sales, _) => sales.time,
+          measureFn: (LinearSales sales, _) => sales.value,
+          data: this.avgXLineData,
+        ),
+        charts.Series<LinearSales, DateTime>(
+          id: 'Avg-Y',
+          domainFn: (LinearSales sales, _) => sales.time,
+          measureFn: (LinearSales sales, _) => sales.value,
+          data: this.avgYLineData,
+        ),
+        charts.Series<LinearSales, DateTime>(
+          id: 'Avg-Z',
+          domainFn: (LinearSales sales, _) => sales.time,
+          measureFn: (LinearSales sales, _) => sales.value,
+          data: this.avgZLineData,
+        )
+      ];
+      accSeries = GetAccRawSeries(accX, accY, accZ);
+      fftSeries = GetFFTSeries(data.fftData_X, data.fftData_Y, data.fftData_Z, 8000);
     });
   }
 
@@ -172,6 +291,10 @@ class _DataPageState extends State<DataPage> {
     double sum = ls.reduce((value, element) => value + element);
     avg = sum / ls.length;
     return avg;
+  }
+
+  _setRange(int range) {
+    ssmModule?.setRange(range);
   }
 }
 

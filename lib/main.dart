@@ -1,25 +1,40 @@
+// ignore_for_file: avoid_print, non_constant_identifier_names
+
+import 'package:get_storage/get_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:ssmflutter/QueryPage.dart';
+import 'package:ssmflutter/SSMModule/emulator.dart' as ssm_emulator;
+import 'package:ssmflutter/SettingPage.dart';
 import 'dart:io';
 import 'dart:async';
 import './dataPage.dart';
 import './drawer.dart';
 import 'SSMModule/module.dart';
+import 'Storage/LocalStorage.dart';
+import 'LandingPage.dart';
 
-void main() {
+void main() async {
+  await GetStorage.init();
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
+
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo -20220414',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
+      theme: ThemeData(primarySwatch: Colors.blue, brightness: Brightness.dark),
+      themeMode: ThemeMode.dark,
+      debugShowCheckedModeBanner: true,
       home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      routes: {
+        'home': (BuildContext ctx) => this,
+        'query': (BuildContext ctx) => const QueryPage(),
+        'settings': (BuildContext ctx) => const SettingPage(),
+      },
     );
   }
 }
@@ -33,8 +48,20 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  static String _ipAddress = '192.168.0.3';
+  final LocalStorage storage = LocalStorage();
+
+  static String _ipAddress = '192.168.0.68';
   static int _port = 5000;
+
+  final TextEditingController _ipTextFieldController = TextEditingController(text: '192.168.0.68');
+
+  final TextEditingController _portTextFieldController = TextEditingController(text: '5000');
+
+  @override
+  void initState() {
+    super.initState();
+    ssm_emulator.start('127.0.0.1', 5000);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,9 +71,7 @@ class _MyHomePageState extends State<MyHomePage> {
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
-      drawer: drawer,
-      floatingActionButtonLocation:
-          FloatingActionButtonLocation.miniCenterDocked,
+      drawer: DrawerWidget(),
       body: Center(
         // Center is a layout widget. It takes a single child and positions it
         // in the middle of the parent.
@@ -54,19 +79,18 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
             TextField(
+              controller: _ipTextFieldController,
               onChanged: (text) {
                 setState(() {
                   _ipAddress = text;
                 });
               },
-              keyboardType: TextInputType.number,
+              keyboardType: TextInputType.phone,
               textInputAction: TextInputAction.next,
-              decoration: const InputDecoration(
-                  hintText: 'Ex:192.168.0.3',
-                  labelText: 'IP',
-                  icon: Icon(Icons.numbers)),
+              decoration: const InputDecoration(hintText: 'Ex:192.168.0.3', labelText: 'IP', icon: Icon(Icons.numbers)),
             ),
             TextField(
+              controller: _portTextFieldController,
               onChanged: (port) {
                 setState(() {
                   _port = int.parse(port);
@@ -74,21 +98,14 @@ class _MyHomePageState extends State<MyHomePage> {
               },
               keyboardType: TextInputType.number,
               textInputAction: TextInputAction.done,
-              decoration: const InputDecoration(
-                  hintText: 'Ex:5000',
-                  labelText: 'Port',
-                  icon: Icon(Icons.numbers_sharp)),
+              decoration: const InputDecoration(hintText: 'Ex:5000', labelText: 'Port', icon: Icon(Icons.numbers_sharp)),
             ),
             ElevatedButton(
-              onPressed: _menuItemClickedHandle,
-              child: Column(
-                children: const <Widget>[
-                  Text(
-                    'CONNECT',
-                  )
-                ],
-              ),
-            ),
+                onPressed: _menuItemClickedHandle,
+                child: const Text(
+                  'CONNECT',
+                )),
+            const Divider(),
           ],
         ),
       ),
@@ -98,6 +115,22 @@ class _MyHomePageState extends State<MyHomePage> {
       //   child: const Icon(Icons.add_a_photo),
       // ), // This trailing comma makes auto-formatting nicer for build methods.
     );
+  }
+
+  ///取得歷史連線紀錄Widget列表
+  List<Widget> _get_historyWidgetList() {
+    List<Widget> widgetList = [];
+    getAddressHistory()
+        .then((value) => {
+              print('s'),
+              print(value.adressList),
+              for (var address in value.adressList)
+                {print(address.ip), widgetList.add(ElevatedButton(onPressed: () => {}, child: Text(address.ip + ':' + address.port.toString())))},
+              print(widgetList.length)
+            })
+        .then((value) => widgetList);
+    print(widgetList.length);
+    return widgetList;
   }
 
   void _menuItemClickedHandle() async {
@@ -110,13 +143,8 @@ class _MyHomePageState extends State<MyHomePage> {
     Navigator.pop(context);
     if (!connect) {
       _showConnectErrDialog();
-    } else {
-      Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) =>
-                  DataPage(title: ssmModule.ip, ssmModule: ssmModule)));
-    }
+    } else
+      Navigator.push(context, MaterialPageRoute(builder: (context) => DataPage(title: ssmModule.ip, ssmModule: ssmModule)));
   }
 
   void _showConnectingSpinner() async {
@@ -159,17 +187,9 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
                 Padding(
                     padding: const EdgeInsets.only(left: 10),
-                    child:
-                        Wrap(alignment: WrapAlignment.spaceAround, children: [
-                      ElevatedButton(
-                          onPressed: () => {
-                                Navigator.of(context).pop(true),
-                                _menuItemClickedHandle()
-                              },
-                          child: const Text('重試')),
-                      ElevatedButton(
-                          onPressed: () => {Navigator.of(context).pop(true)},
-                          child: const Text('OK'))
+                    child: Wrap(alignment: WrapAlignment.spaceAround, children: [
+                      ElevatedButton(onPressed: () => {Navigator.of(context).pop(true), _menuItemClickedHandle()}, child: const Text('重試')),
+                      ElevatedButton(onPressed: () => {Navigator.of(context).pop(true)}, child: const Text('OK'))
                     ]))
               ],
             ))
@@ -184,54 +204,14 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-// class DataPage extends StatefulWidget {
-//   const DataPage({Key? key, required this.title, this.socket})
-//       : super(key: key);
-//   final String title;
-//   final Socket? socket;
-//   @override
-//   State<DataPage> createState() => _DataPageState(socket: this.socket);
-// }
+class LocalStorage {
+  final box = GetStorage();
+  void setItem(key, data) {
+    box.write(key, data);
+  }
 
-// class _DataPageState extends State<DataPage> {
-//   _DataPageState({this.socket});
-
-//   final Socket? socket;
-//   void send() {
-//     socket?.write('READVALUE\r\n');
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         // Here we take the value from the MyHomePage object that was created by
-//         // the App.build method, and use it to set our appbar title.
-//         title: Text(widget.title),
-//       ),
-//       drawer: Drawer(
-//         child: Column(
-//             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-//             mainAxisSize: MainAxisSize.max,
-//             children: <Widget>[]),
-//       ),
-//       floatingActionButtonLocation:
-//           FloatingActionButtonLocation.miniCenterDocked,
-//       body: Center(
-//         // Center is a layout widget. It takes a single child and positions it
-//         // in the middle of the parent.
-//         child: Column(
-//           mainAxisAlignment: MainAxisAlignment.start,
-//           children: <Widget>[
-//             ElevatedButton(onPressed: send, child: const Text('send'))
-//           ],
-//         ),
-//       ),
-//       // floatingActionButton: FloatingActionButton(
-//       //   onPressed: _incrementCounter,
-//       //   tooltip: 'Increment',
-//       //   child: const Icon(Icons.add_a_photo),
-//       // ), // This trailing comma makes auto-formatting nicer for build methods.
-//     );
-//   }
-// }
+  dynamic getItem(key) {
+    var data = box.read(key);
+    return data;
+  }
+}
