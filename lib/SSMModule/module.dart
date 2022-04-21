@@ -95,7 +95,7 @@ class Module {
 
         changeController.add(AccDataRevDoneEvent(data[0], data[1], data[2], fft_x, fft_y, fft_z, features));
         accDataBuffer.clear();
-        await Future.delayed(const Duration(microseconds: 600));
+        await Future.delayed(const Duration(microseconds: 444));
         try {
           _ssmSocket?.write('READVALUE\r\n');
         } catch (e) {

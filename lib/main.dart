@@ -1,6 +1,5 @@
 // ignore_for_file: avoid_print, non_constant_identifier_names
 
-import 'package:get_storage/get_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:ssmflutter/QueryPage.dart';
 import 'package:ssmflutter/SSMModule/emulator.dart' as ssm_emulator;
@@ -14,7 +13,6 @@ import 'Storage/LocalStorage.dart';
 import 'LandingPage.dart';
 
 void main() async {
-  await GetStorage.init();
   runApp(const MyApp());
 }
 
@@ -27,7 +25,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo -20220414',
       theme: ThemeData(primarySwatch: Colors.blue, brightness: Brightness.dark),
-      themeMode: ThemeMode.dark,
+      themeMode: ThemeMode.system,
       debugShowCheckedModeBanner: true,
       home: const MyHomePage(title: 'Flutter Demo Home Page'),
       routes: {
@@ -48,8 +46,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final LocalStorage storage = LocalStorage();
-
   static String _ipAddress = '192.168.0.68';
   static int _port = 5000;
 
@@ -100,11 +96,16 @@ class _MyHomePageState extends State<MyHomePage> {
               textInputAction: TextInputAction.done,
               decoration: const InputDecoration(hintText: 'Ex:5000', labelText: 'Port', icon: Icon(Icons.numbers_sharp)),
             ),
-            ElevatedButton(
-                onPressed: _menuItemClickedHandle,
-                child: const Text(
-                  'CONNECT',
-                )),
+            SizedBox(
+              width: double.infinity,
+
+              child:ElevatedButton(
+                  onPressed: _menuItemClickedHandle,
+                  child: const Text(
+                    '連線',
+                  )) ,
+            )
+            ,
             const Divider(),
           ],
         ),
@@ -115,22 +116,6 @@ class _MyHomePageState extends State<MyHomePage> {
       //   child: const Icon(Icons.add_a_photo),
       // ), // This trailing comma makes auto-formatting nicer for build methods.
     );
-  }
-
-  ///取得歷史連線紀錄Widget列表
-  List<Widget> _get_historyWidgetList() {
-    List<Widget> widgetList = [];
-    getAddressHistory()
-        .then((value) => {
-              print('s'),
-              print(value.adressList),
-              for (var address in value.adressList)
-                {print(address.ip), widgetList.add(ElevatedButton(onPressed: () => {}, child: Text(address.ip + ':' + address.port.toString())))},
-              print(widgetList.length)
-            })
-        .then((value) => widgetList);
-    print(widgetList.length);
-    return widgetList;
   }
 
   void _menuItemClickedHandle() async {
@@ -201,17 +186,5 @@ class _MyHomePageState extends State<MyHomePage> {
         builder: (BuildContext context) {
           return alertDialog;
         });
-  }
-}
-
-class LocalStorage {
-  final box = GetStorage();
-  void setItem(key, data) {
-    box.write(key, data);
-  }
-
-  dynamic getItem(key) {
-    var data = box.read(key);
-    return data;
   }
 }
