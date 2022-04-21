@@ -1,11 +1,17 @@
 // ignore_for_file: avoid_print
 
+import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:ssmflutter/SysSetting.dart';
 import './SensorData.dart';
 
 class API {
   static String tableName = "sensor_data_tb";
+  static String appSettingDBName = "appSetting.db";
+
+  static String appSettingTableName = "appSetting_tb";
+
   static Future<Database> openDB() async {
     var dbFilePath = join(await getDatabasesPath(), 'features_data.db');
     Database database = await openDatabase(dbFilePath, onCreate: (db, version) {
@@ -13,6 +19,16 @@ class API {
         "CREATE TABLE $tableName(time TEXT PRIMARY KEY, acc_x_pp REAL, acc_y_pp REAL, acc_z_pp REAL,vel_x_rms REAL,vel_y_rms REAL,vel_z_rms REAL,dis_x_pp REAL,dis_y_pp REAL,dis_z_pp REAL)",
       );
     }, version: 6);
+    return database;
+  }
+
+  static Future<Database> openAPPSettingDB() async {
+    var dbFilePath = join(await getDatabasesPath(), '$appSettingDBName');
+    Database database = await openDatabase(dbFilePath, onCreate: (db, version) {
+      return db.execute(
+        "CREATE TABLE $appSettingTableName(scope TEXT PRIMARY KEY, appTheme TEXT, saveDataToDB REAL, dataKeepDay REAL)",
+      );
+    }, version: 1);
     return database;
   }
 
@@ -55,5 +71,43 @@ class API {
     }
 
     return ls;
+  }
+
+  static saveAPPSetting(SysSetting setting) async {
+    try {
+      var db = await openAPPSettingDB();
+
+      var existLs = await db.query(appSettingTableName);
+      if (existLs.isNotEmpty) {
+        await db.update(appSettingTableName, setting.toMap(),
+            where: "scope == 'user'");
+      } else {
+        await db.insert(appSettingTableName, setting.toMap());
+      }
+      getAPPSetting();
+      print('ok-' '${setting.toMap()}');
+    } catch (ee) {
+      print(ee);
+    }
+  }
+
+  static Future<SysSetting> getAPPSetting() async {
+    SysSetting settings = SysSetting();
+
+    var db = await openAPPSettingDB();
+    var existLs = await db.query(appSettingTableName);
+    if (existLs.isNotEmpty) {
+      var settingMap = existLs.first;
+      settings.appTheme = settingMap['appTheme'].toString();
+      settings.saveDataToDB = int.parse(
+          double.parse(settingMap['saveDataToDB'].toString())
+              .toStringAsFixed(0));
+      settings.dataKeepDay = int.parse(
+          double.parse(settingMap['dataKeepDay'].toString())
+              .toStringAsFixed(0));
+      print('from db :' + settings.toMap().toString());
+    }
+
+    return settings;
   }
 }

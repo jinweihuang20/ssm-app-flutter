@@ -11,6 +11,7 @@ import './drawer.dart';
 import 'SSMModule/module.dart';
 import 'Storage/LocalStorage.dart';
 import 'LandingPage.dart';
+import 'SysSetting.dart';
 
 void main() async {
   runApp(const MyApp());
@@ -49,14 +50,18 @@ class _MyHomePageState extends State<MyHomePage> {
   static String _ipAddress = '192.168.0.68';
   static int _port = 5000;
 
-  final TextEditingController _ipTextFieldController = TextEditingController(text: '192.168.0.68');
+  final TextEditingController _ipTextFieldController =
+      TextEditingController(text: '192.168.0.68');
 
-  final TextEditingController _portTextFieldController = TextEditingController(text: '5000');
+  final TextEditingController _portTextFieldController =
+      TextEditingController(text: '5000');
 
   @override
   void initState() {
     super.initState();
     ssm_emulator.start('127.0.0.1', 5000);
+
+    User.loadSetting();
   }
 
   @override
@@ -83,7 +88,10 @@ class _MyHomePageState extends State<MyHomePage> {
               },
               keyboardType: TextInputType.phone,
               textInputAction: TextInputAction.next,
-              decoration: const InputDecoration(hintText: 'Ex:192.168.0.3', labelText: 'IP', icon: Icon(Icons.numbers)),
+              decoration: const InputDecoration(
+                  hintText: 'Ex:192.168.0.3',
+                  labelText: 'IP',
+                  icon: Icon(Icons.numbers)),
             ),
             TextField(
               controller: _portTextFieldController,
@@ -94,18 +102,19 @@ class _MyHomePageState extends State<MyHomePage> {
               },
               keyboardType: TextInputType.number,
               textInputAction: TextInputAction.done,
-              decoration: const InputDecoration(hintText: 'Ex:5000', labelText: 'Port', icon: Icon(Icons.numbers_sharp)),
+              decoration: const InputDecoration(
+                  hintText: 'Ex:5000',
+                  labelText: 'Port',
+                  icon: Icon(Icons.numbers_sharp)),
             ),
             SizedBox(
               width: double.infinity,
-
-              child:ElevatedButton(
+              child: ElevatedButton(
                   onPressed: _menuItemClickedHandle,
                   child: const Text(
                     '連線',
-                  )) ,
-            )
-            ,
+                  )),
+            ),
             const Divider(),
           ],
         ),
@@ -128,8 +137,13 @@ class _MyHomePageState extends State<MyHomePage> {
     Navigator.pop(context);
     if (!connect) {
       _showConnectErrDialog();
-    } else
-      Navigator.push(context, MaterialPageRoute(builder: (context) => DataPage(title: ssmModule.ip, ssmModule: ssmModule)));
+    } else {
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) =>
+                  DataPage(title: ssmModule.ip, ssmModule: ssmModule)));
+    }
   }
 
   void _showConnectingSpinner() async {
@@ -172,9 +186,17 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
                 Padding(
                     padding: const EdgeInsets.only(left: 10),
-                    child: Wrap(alignment: WrapAlignment.spaceAround, children: [
-                      ElevatedButton(onPressed: () => {Navigator.of(context).pop(true), _menuItemClickedHandle()}, child: const Text('重試')),
-                      ElevatedButton(onPressed: () => {Navigator.of(context).pop(true)}, child: const Text('OK'))
+                    child:
+                        Wrap(alignment: WrapAlignment.spaceAround, children: [
+                      ElevatedButton(
+                          onPressed: () => {
+                                Navigator.of(context).pop(true),
+                                _menuItemClickedHandle()
+                              },
+                          child: const Text('重試')),
+                      ElevatedButton(
+                          onPressed: () => {Navigator.of(context).pop(true)},
+                          child: const Text('OK'))
                     ]))
               ],
             ))

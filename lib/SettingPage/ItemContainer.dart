@@ -3,22 +3,28 @@
 import 'package:flutter/material.dart';
 
 class ItemContainer extends StatefulWidget {
-  ItemContainer(this.children) : super();
-  List<Widget> children = [];
+  const ItemContainer({Key? key, required this.children}) : super(key: key);
+  final List<Widget> children;
   @override
   State<StatefulWidget> createState() {
-    return _ItemContainer(children);
+    return _ItemContainer();
   }
 }
 
 class _ItemContainer extends State<ItemContainer> {
-  _ItemContainer(this.children);
-  List<Widget> children = [];
-  @override
+  _ItemContainer();
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: children,
+    return Padding(
+      padding: EdgeInsets.only(top: 5),
+      child: Container(
+        color: Colors.blueGrey.shade800,
+        padding: const EdgeInsets.only(left: 8, right: 9),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: widget.children,
+        ),
+      ),
     );
   }
 }

@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:ssmflutter/Database/SensorData.dart';
 import 'package:ssmflutter/SSMModule/FeatureDisplay.dart';
+import 'package:ssmflutter/SysSetting.dart';
 import 'drawer.dart';
 import 'SSMModule/module.dart';
 import 'dart:async';
@@ -14,6 +15,7 @@ import 'SSMModule/MeasureRangeDropDownBtn.dart';
 import 'package:ssmflutter/SSMModule/emulator.dart' as ssm_emulator;
 
 import 'Database/SqliteAPI.dart' as db;
+import 'Storage/Caches.dart';
 
 class DataPage extends StatefulWidget {
   const DataPage({Key? key, required this.title, this.ssmModule})
@@ -62,7 +64,7 @@ class _DataPageState extends State<DataPage> {
     )
   ];
 
-  var accSeries = GetAccRawSeries([], [], []);
+  var accSeries = getAccRawSeries([], [], []);
   var fftSeries = GetFFTSeries([], [], [], 8000);
   Features features = Features();
 
@@ -294,19 +296,23 @@ class _DataPageState extends State<DataPage> {
 
       features = data.features;
 
-      //db
-      db.API.insertData(SensorData(
-        DateTime.now(),
-        features.acc_x_pp,
-        features.acc_y_pp,
-        features.acc_z_pp,
-        features.vel_x_rms,
-        features.vel_y_rms,
-        features.vel_z_rms,
-        features.dis_x_pp,
-        features.dis_y_pp,
-        features.dis_z_pp,
-      ));
+      if (User.writeDataToDb) {
+        //db
+        db.API.insertData(SensorData(
+          DateTime.now(),
+          features.acc_x_pp,
+          features.acc_y_pp,
+          features.acc_z_pp,
+          features.vel_x_rms,
+          features.vel_y_rms,
+          features.vel_z_rms,
+          features.dis_x_pp,
+          features.dis_y_pp,
+          features.dis_z_pp,
+        ));
+      } else {
+        print('not write db');
+      }
 
       seriesList = [
         charts.Series<LinearSales, DateTime>(
@@ -328,7 +334,7 @@ class _DataPageState extends State<DataPage> {
           data: this.avgZLineData,
         )
       ];
-      accSeries = GetAccRawSeries(accX, accY, accZ);
+      accSeries = getAccRawSeries(accX, accY, accZ);
       fftSeries =
           GetFFTSeries(data.fftData_X, data.fftData_Y, data.fftData_Z, 8000);
     });

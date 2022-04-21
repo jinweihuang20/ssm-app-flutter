@@ -9,6 +9,7 @@ import 'package:ssmflutter/Database/SensorData.dart';
 import 'Chartslb/LineChart.dart';
 import 'Database/SqliteAPI.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
+import 'Storage/Caches.dart';
 
 class QueryPage extends StatefulWidget {
   const QueryPage({Key? key}) : super(key: key);
@@ -53,7 +54,8 @@ class _QueryPage extends State<QueryPage> {
             TrendChart(
                 title: '速度-RMS', seriseLs: vel_data_seriseLs, unit: 'mm/s'),
             const Divider(),
-            TrendChart(title: '位移量-P2P', seriseLs: dis_data_seriseLs, unit: 'um')
+            TrendChart(
+                title: '位移量-P2P', seriseLs: dis_data_seriseLs, unit: 'um')
           ],
         ),
       ),
@@ -64,27 +66,20 @@ class _QueryPage extends State<QueryPage> {
   DateTime endTime = DateTime.now();
   String timeSelectFor = 'start'; //'end'
 
-  List<Series<SeriesPt, DateTime>> acc_data_seriseLs = [
-    Series(
-        id: 'Acc-X',
-        data: [],
-        domainFn: (SeriesPt accpet, _) => accpet.time,
-        measureFn: (SeriesPt accpet, _) => accpet.value)
-  ];
-  List<Series<SeriesPt, DateTime>> vel_data_seriseLs = [
-    Series(
-        id: 'Acc-Y',
-        data: [],
-        domainFn: (SeriesPt accpet, _) => accpet.time,
-        measureFn: (SeriesPt accpet, _) => accpet.value)
-  ];
-  List<Series<SeriesPt, DateTime>> dis_data_seriseLs = [
-    Series(
-        id: 'Acc-Z',
-        data: [],
-        domainFn: (SeriesPt accpet, _) => accpet.time,
-        measureFn: (SeriesPt accpet, _) => accpet.value)
-  ];
+  List<Series<SeriesPt, DateTime>> acc_data_seriseLs = [];
+  List<Series<SeriesPt, DateTime>> vel_data_seriseLs = [];
+  List<Series<SeriesPt, DateTime>> dis_data_seriseLs = [];
+
+  @override
+  void initState() {
+    super.initState();
+    setState(() {
+      acc_data_seriseLs = QueryCache.queryOutDataSet.acc_data_seriseLs;
+      vel_data_seriseLs = QueryCache.queryOutDataSet.vel_data_seriseLs;
+      dis_data_seriseLs = QueryCache.queryOutDataSet.dis_data_seriseLs;
+    });
+  }
+
   @override
   void dispose() {
     super.dispose();
@@ -155,14 +150,15 @@ class _QueryPage extends State<QueryPage> {
       });
     }
     print(outputLs.length);
-    print(outputLs.last.time);
 
     setState(() {
       SeriesCollection collection = SeriesCollection(outputLs);
-      var set = collection.GetSerisesToRender();
-      acc_data_seriseLs = set.acc_data_seriseLs;
-      vel_data_seriseLs = set.vel_data_seriseLs;
-      dis_data_seriseLs = set.dis_data_seriseLs;
+      SeriesLsToRender dataSet = collection.getSerisesToRender();
+
+      acc_data_seriseLs = dataSet.acc_data_seriseLs;
+      vel_data_seriseLs = dataSet.vel_data_seriseLs;
+      dis_data_seriseLs = dataSet.dis_data_seriseLs;
+      QueryCache.queryOutDataSet = dataSet;
     });
 
     return outputLs;
@@ -274,99 +270,98 @@ class SeriesCollection {
   SeriesCollection(this.sensorDataLs);
   final List<SensorData> sensorDataLs;
 
-  SeriesLsToRender GetSerisesToRender() {
-    List<Series<SeriesPt, DateTime>> acc_data_seriseLs = [];
-    List<Series<SeriesPt, DateTime>> vel_data_seriseLs = [];
-    List<Series<SeriesPt, DateTime>> dis_data_seriseLs = [];
+  SeriesLsToRender getSerisesToRender() {
+    List<Series<SeriesPt, DateTime>> accDataSeriseLs = [];
+    List<Series<SeriesPt, DateTime>> velDataSeriseLs = [];
+    List<Series<SeriesPt, DateTime>> disDataSeriseLs = [];
 
-    List<SeriesPt> acc_x_ls = [];
-    List<SeriesPt> acc_y_ls = [];
-    List<SeriesPt> acc_z_ls = [];
-    List<SeriesPt> vel_x_ls = [];
-    List<SeriesPt> vel_y_ls = [];
-    List<SeriesPt> vel_z_ls = [];
-    List<SeriesPt> dis_x_ls = [];
-    List<SeriesPt> dis_y_ls = [];
-    List<SeriesPt> dis_z_ls = [];
+    List<SeriesPt> accXLs = [];
+    List<SeriesPt> accYLs = [];
+    List<SeriesPt> accZLs = [];
+    List<SeriesPt> velXLs = [];
+    List<SeriesPt> velYLs = [];
+    List<SeriesPt> velZLs = [];
+    List<SeriesPt> disXLs = [];
+    List<SeriesPt> disYLs = [];
+    List<SeriesPt> disZLs = [];
     List.generate(sensorDataLs.length, (index) {
       var dataSet = sensorDataLs[index];
       DateTime time = dataSet.time;
 
-      acc_x_ls.add(SeriesPt(time, dataSet.acc_x_pp));
-      acc_y_ls.add(SeriesPt(time, dataSet.acc_y_pp));
-      acc_z_ls.add(SeriesPt(time, dataSet.acc_z_pp));
+      accXLs.add(SeriesPt(time, dataSet.acc_x_pp));
+      accYLs.add(SeriesPt(time, dataSet.acc_y_pp));
+      accZLs.add(SeriesPt(time, dataSet.acc_z_pp));
 
-      vel_x_ls.add(SeriesPt(time, dataSet.vel_x_rms));
-      vel_y_ls.add(SeriesPt(time, dataSet.vel_y_rms));
-      vel_z_ls.add(SeriesPt(time, dataSet.vel_z_rms));
+      velXLs.add(SeriesPt(time, dataSet.vel_x_rms));
+      velYLs.add(SeriesPt(time, dataSet.vel_y_rms));
+      velZLs.add(SeriesPt(time, dataSet.vel_z_rms));
 
-      dis_x_ls.add(SeriesPt(time, dataSet.dis_x_pp));
-      dis_y_ls.add(SeriesPt(time, dataSet.dis_y_pp));
-      dis_z_ls.add(SeriesPt(time, dataSet.dis_z_pp));
+      disXLs.add(SeriesPt(time, dataSet.dis_x_pp));
+      disYLs.add(SeriesPt(time, dataSet.dis_y_pp));
+      disZLs.add(SeriesPt(time, dataSet.dis_z_pp));
     });
 
     Series<SeriesPt, DateTime> accXSeries = Series(
         id: 'X',
-        data: acc_x_ls,
+        data: accXLs,
         domainFn: (SeriesPt accpet, _) => accpet.time,
         measureFn: (SeriesPt accpet, _) => accpet.value);
     Series<SeriesPt, DateTime> accYSeries = Series(
         id: 'Y',
-        data: acc_y_ls,
+        data: accYLs,
         domainFn: (SeriesPt accpet, _) => accpet.time,
         measureFn: (SeriesPt accpet, _) => accpet.value);
     Series<SeriesPt, DateTime> accZSeries = Series(
         id: 'Z',
-        data: acc_z_ls,
+        data: accZLs,
         domainFn: (SeriesPt accpet, _) => accpet.time,
         measureFn: (SeriesPt accpet, _) => accpet.value);
 
-    acc_data_seriseLs.add(accXSeries);
-    acc_data_seriseLs.add(accYSeries);
-    acc_data_seriseLs.add(accZSeries);
+    accDataSeriseLs.add(accXSeries);
+    accDataSeriseLs.add(accYSeries);
+    accDataSeriseLs.add(accZSeries);
 
     Series<SeriesPt, DateTime> velXSeries = Series(
         id: 'X',
-        data: vel_x_ls,
+        data: velXLs,
         domainFn: (SeriesPt accpet, _) => accpet.time,
         measureFn: (SeriesPt accpet, _) => accpet.value);
     Series<SeriesPt, DateTime> velYSeries = Series(
         id: 'Y',
-        data: vel_y_ls,
+        data: velYLs,
         domainFn: (SeriesPt accpet, _) => accpet.time,
         measureFn: (SeriesPt accpet, _) => accpet.value);
     Series<SeriesPt, DateTime> velZSeries = Series(
         id: 'Z',
-        data: vel_z_ls,
+        data: velZLs,
         domainFn: (SeriesPt accpet, _) => accpet.time,
         measureFn: (SeriesPt accpet, _) => accpet.value);
 
-    vel_data_seriseLs.add(velXSeries);
-    vel_data_seriseLs.add(velYSeries);
-    vel_data_seriseLs.add(velZSeries);
+    velDataSeriseLs.add(velXSeries);
+    velDataSeriseLs.add(velYSeries);
+    velDataSeriseLs.add(velZSeries);
 
     Series<SeriesPt, DateTime> disXSeries = Series(
         id: 'X',
-        data: dis_x_ls,
+        data: disXLs,
         domainFn: (SeriesPt accpet, _) => accpet.time,
         measureFn: (SeriesPt accpet, _) => accpet.value);
     Series<SeriesPt, DateTime> disYSeries = Series(
         id: 'Y',
-        data: dis_y_ls,
+        data: disYLs,
         domainFn: (SeriesPt accpet, _) => accpet.time,
         measureFn: (SeriesPt accpet, _) => accpet.value);
     Series<SeriesPt, DateTime> disZSeries = Series(
         id: 'Z',
-        data: dis_z_ls,
+        data: disZLs,
         domainFn: (SeriesPt accpet, _) => accpet.time,
         measureFn: (SeriesPt accpet, _) => accpet.value);
 
-    dis_data_seriseLs.add(disXSeries);
-    dis_data_seriseLs.add(disYSeries);
-    dis_data_seriseLs.add(disZSeries);
+    disDataSeriseLs.add(disXSeries);
+    disDataSeriseLs.add(disYSeries);
+    disDataSeriseLs.add(disZSeries);
 
-    return SeriesLsToRender(
-        acc_data_seriseLs, vel_data_seriseLs, dis_data_seriseLs);
+    return SeriesLsToRender(accDataSeriseLs, velDataSeriseLs, disDataSeriseLs);
   }
 }
 
