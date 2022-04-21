@@ -18,23 +18,34 @@ import 'Database/SqliteAPI.dart' as db;
 import 'Storage/Caches.dart';
 
 class DataPage extends StatefulWidget {
-  const DataPage({Key? key, required this.title, this.ssmModule})
-      : super(key: key);
-  final String title;
-  final Module? ssmModule;
+  const DataPage({Key? key}) : super(key: key);
 
   @override
-  State<DataPage> createState() => _DataPageState(ssmModule: this.ssmModule);
+  State<DataPage> createState() => _DataPageState();
 }
 
 class _DataPageState extends State<DataPage> {
-  _DataPageState({this.ssmModule});
+  var _ssmModule;
 
-  final Module? ssmModule;
+  set ssmModule(Module module) {
+    if (_ssmModule == null) {
+      _ssmModule = module;
+      _ssmModule.accDataOnChange.listen((data) {
+        accDataHandle(data);
+      });
+      _ssmModule.startReadValue();
+      setState(() {
+        range = _ssmModule.range;
+      });
+    }
+  }
+
+  Module get ssmModule => _ssmModule;
 
   var range;
   final Color pauseBgColor = Colors.grey;
   final Color normalBgColor = Colors.white;
+
   Color bgColor = Colors.white;
 
   var _pauseFlag = false;
@@ -104,26 +115,27 @@ class _DataPageState extends State<DataPage> {
     return double.parse(avgAccZ.toString()).toStringAsFixed(2);
   }
 
-  get module_address => ssmModule?.address;
+  get module_address => ssmModule.address;
 
   get connected {
     if (ssmModule == null)
       return false;
     else
-      return ssmModule?.connected;
+      return ssmModule.connected;
   }
 
   set connected(val) {
-    ssmModule?.connected = val;
+    ssmModule.connected = val;
   }
 
   @override
   Widget build(BuildContext context) {
+    ssmModule = ModalRoute.of(context)!.settings.arguments as Module;
     return Scaffold(
       appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        title: Text("Monitor"),
       ),
       drawer: DrawerWidget(),
       persistentFooterButtons: [
@@ -247,34 +259,27 @@ class _DataPageState extends State<DataPage> {
 
   @override
   void initState() {
-    ssmModule?.accDataOnChange.listen((data) {
-      accDataHandle(data);
-    });
-    ssmModule?.startReadValue();
-    setState(() {
-      range = ssmModule?.range;
-    });
     super.initState();
   }
 
   @override
   void dispose() {
     print('page disposed');
-    ssmModule?.close();
+    ssmModule.close();
     ssm_emulator.restart();
     super.dispose();
   }
 
   void closeSocket() {
-    ssmModule?.close();
+    ssmModule.close();
     setState(() {
       connected = false;
     });
   }
 
   void reConnect() {
-    ssmModule?.connect();
-    ssmModule?.startReadValue();
+    ssmModule.connect();
+    ssmModule.startReadValue();
   }
 
   void accDataHandle(AccDataRevDoneEvent data) {
@@ -350,7 +355,7 @@ class _DataPageState extends State<DataPage> {
   }
 
   _setRange(int range) {
-    ssmModule?.setRange(range);
+    ssmModule.setRange(range);
   }
 }
 

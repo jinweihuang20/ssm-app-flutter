@@ -4,13 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:ssmflutter/QueryPage.dart';
 import 'package:ssmflutter/SSMModule/emulator.dart' as ssm_emulator;
 import 'package:ssmflutter/SettingPage.dart';
-import 'dart:io';
 import 'dart:async';
 import './dataPage.dart';
 import './drawer.dart';
 import 'SSMModule/module.dart';
-import 'Storage/LocalStorage.dart';
-import 'LandingPage.dart';
 import 'SysSetting.dart';
 
 void main() async {
@@ -28,19 +25,20 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(primarySwatch: Colors.blue, brightness: Brightness.dark),
       themeMode: ThemeMode.system,
       debugShowCheckedModeBanner: true,
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      // home: const MyHomePage(),
+      initialRoute: "/",
       routes: {
-        'home': (BuildContext ctx) => this,
-        'query': (BuildContext ctx) => const QueryPage(),
-        'settings': (BuildContext ctx) => const SettingPage(),
+        '/': (context) => const MyHomePage(),
+        'query': (context) => const QueryPage(),
+        'dataPage': (context) => const DataPage(),
+        'settings': (context) => const SettingPage(),
       },
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
-  final String title;
+  const MyHomePage({Key? key}) : super(key: key);
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
@@ -70,7 +68,7 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        title: Text("連線"),
       ),
       drawer: DrawerWidget(),
       body: Center(
@@ -134,15 +132,11 @@ class _MyHomePageState extends State<MyHomePage> {
 
     await Future.delayed(const Duration(seconds: 1));
 
-    Navigator.pop(context);
+    Navigator.pop(this.context);
     if (!connect) {
       _showConnectErrDialog();
     } else {
-      Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) =>
-                  DataPage(title: ssmModule.ip, ssmModule: ssmModule)));
+      Navigator.pushNamed((this.context), 'dataPage', arguments: ssmModule);
     }
   }
 
@@ -163,7 +157,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
 
     showDialog(
-        context: context,
+        context: this.context,
         builder: (BuildContext context) {
           return alertDialog;
         });
@@ -190,12 +184,13 @@ class _MyHomePageState extends State<MyHomePage> {
                         Wrap(alignment: WrapAlignment.spaceAround, children: [
                       ElevatedButton(
                           onPressed: () => {
-                                Navigator.of(context).pop(true),
+                                Navigator.of(this.context).pop(true),
                                 _menuItemClickedHandle()
                               },
                           child: const Text('重試')),
                       ElevatedButton(
-                          onPressed: () => {Navigator.of(context).pop(true)},
+                          onPressed: () =>
+                              {Navigator.of(this.context).pop(true)},
                           child: const Text('OK'))
                     ]))
               ],
@@ -204,7 +199,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
 
     showDialog(
-        context: context,
+        context: this.context,
         builder: (BuildContext context) {
           return alertDialog;
         });
