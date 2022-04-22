@@ -2,24 +2,11 @@
 
 import 'package:flutter/material.dart';
 
-class ItemTitle extends StatefulWidget {
-  ItemTitle({required this.text, this.icon});
+class ItemTitle extends StatelessWidget {
+  const ItemTitle({Key? key, required this.text, this.icon}) : super(key: key);
+
   final text;
   final Icon? icon;
-  @override
-  State<StatefulWidget> createState() {
-    return _ItemTitle();
-  }
-}
-
-class _ItemTitle extends State<ItemTitle> {
-  _ItemTitle();
-
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,14 +15,13 @@ class _ItemTitle extends State<ItemTitle> {
       child: Row(
         children: [
           Padding(
-              padding: EdgeInsets.only(right: 5),
-              child: widget.icon == null
-                  ? Icon(
-                      Icons.my_library_books_sharp,
-                      size: 17,
-                    )
-                  : widget.icon),
-          Text(widget.text)
+              padding: const EdgeInsets.only(right: 5),
+              child: icon ??
+                  const Icon(
+                    Icons.my_library_books_sharp,
+                    size: 17,
+                  )),
+          Text(text)
         ],
       ),
     );
