@@ -2,9 +2,9 @@
 
 import 'package:charts_flutter/flutter.dart';
 import 'package:flutter/material.dart';
-import 'SettingPage.dart';
+import 'Pages/SettingPage.dart';
 import 'main.dart';
-import 'QueryPage.dart';
+import 'Pages/QueryPage.dart';
 
 class DrawerWidget extends StatefulWidget {
   @override
@@ -50,8 +50,7 @@ class _DrawerWidget extends State<DrawerWidget> {
 
   void goHomePage() {
     Navigator.pop(context);
-    Navigator.push(
-        context, MaterialPageRoute(builder: (context) => const MyApp()));
+    Navigator.push(context, MaterialPageRoute(builder: (context) => const MyApp()));
   }
 
   ButtonStyle _menuButtonStyle() {

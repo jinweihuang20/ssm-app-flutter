@@ -3,61 +3,53 @@
 import 'dart:convert';
 import 'package:charts_flutter/flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:path/path.dart';
 import 'package:ssmflutter/Database/SensorData.dart';
-import 'Chartslb/LineChart.dart';
-import 'Database/SqliteAPI.dart';
+import '../Chartslb/LineChart.dart';
+import '../Database/SqliteAPI.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
-import 'Storage/Caches.dart';
+import '../Storage/Caches.dart';
 
 class QueryPage extends StatefulWidget {
-  const QueryPage({Key? key}) : super(key: key);
+  QueryPage({Key? key}) : super(key: key);
 
   @override
   State<QueryPage> createState() => _QueryPage();
 }
 
-class _QueryPage extends State<QueryPage> {
+class _QueryPage extends State<QueryPage> with AutomaticKeepAliveClientMixin {
+  @override
+  // TODO: implement wantKeepAlive
+  bool get wantKeepAlive => true;
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('History Data Query'),
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.max,
-          children: [
-            const Padding(padding: EdgeInsets.only(top: 20)),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                ElevatedButton(
-                    onPressed: queryLastFiveMinData,
-                    child: const Text('過去5分鐘')),
-                ElevatedButton(
-                    onPressed: queryLastTenMinData,
-                    child: const Text('過去10分鐘')),
-                ElevatedButton(
-                    onPressed: queryLastThirtyMinData,
-                    child: const Text('過去30分鐘'))
-              ],
-            ),
-            const Divider(),
-            TrendChart(
-              title: '加速度-PP',
-              seriseLs: acc_data_seriseLs,
-              unit: 'G',
-            ),
-            const Divider(),
-            TrendChart(
-                title: '速度-RMS', seriseLs: vel_data_seriseLs, unit: 'mm/s'),
-            const Divider(),
-            TrendChart(
-                title: '位移量-P2P', seriseLs: dis_data_seriseLs, unit: 'um')
-          ],
-        ),
+    return SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.max,
+        children: [
+          const Padding(padding: EdgeInsets.only(top: 20)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              ElevatedButton(onPressed: queryLastFiveMinData, child: const Text('過去5分鐘')),
+              ElevatedButton(onPressed: queryLastTenMinData, child: const Text('過去10分鐘')),
+              ElevatedButton(onPressed: queryLastThirtyMinData, child: const Text('過去30分鐘'))
+            ],
+          ),
+          const Divider(),
+          TrendChart(
+            title: '加速度-PP',
+            seriseLs: acc_data_seriseLs,
+            unit: 'G',
+          ),
+          const Divider(),
+          TrendChart(title: '速度-RMS', seriseLs: vel_data_seriseLs, unit: 'mm/s'),
+          const Divider(),
+          TrendChart(title: '位移量-P2P', seriseLs: dis_data_seriseLs, unit: 'um')
+        ],
       ),
     );
   }
@@ -73,16 +65,13 @@ class _QueryPage extends State<QueryPage> {
   @override
   void initState() {
     super.initState();
-    setState(() {
-      acc_data_seriseLs = QueryCache.queryOutDataSet.acc_data_seriseLs;
-      vel_data_seriseLs = QueryCache.queryOutDataSet.vel_data_seriseLs;
-      dis_data_seriseLs = QueryCache.queryOutDataSet.dis_data_seriseLs;
-    });
+    print('Quert Page Init');
   }
 
   @override
   void dispose() {
     super.dispose();
+    print('Query Page Disposed');
   }
 
   void showDateTimePicker(context) {
@@ -128,24 +117,14 @@ class _QueryPage extends State<QueryPage> {
 
   Future<List<SensorData>> query() async {
     List<SensorData> outputLs = [];
-    List<Map<String, dynamic>> ls =
-        await API.queryOutWithTimeInterval(startTime, endTime);
+    List<Map<String, dynamic>> ls = await API.queryOutWithTimeInterval(startTime, endTime);
     int? len = ls.length;
 
     if (len != 0) {
       List.generate(len, (i) {
         var dp = ls[i];
-        SensorData data = SensorData(
-            DateTime.parse(dp['time']),
-            dp['acc_x_pp'],
-            dp['acc_y_pp'],
-            dp['acc_z_pp'],
-            dp['vel_x_rms'],
-            dp['vel_y_rms'],
-            dp['vel_z_rms'],
-            dp['dis_x_pp'],
-            dp['dis_y_pp'],
-            dp['dis_z_pp']);
+        SensorData data = SensorData(DateTime.parse(dp['time']), dp['acc_x_pp'], dp['acc_y_pp'], dp['acc_z_pp'], dp['vel_x_rms'], dp['vel_y_rms'], dp['vel_z_rms'],
+            dp['dis_x_pp'], dp['dis_y_pp'], dp['dis_z_pp']);
         outputLs.add(data);
       });
     }
@@ -166,12 +145,7 @@ class _QueryPage extends State<QueryPage> {
 }
 
 class TrendChart extends StatefulWidget {
-  const TrendChart(
-      {Key? key,
-      required this.title,
-      required this.seriseLs,
-      required this.unit})
-      : super(key: key);
+  const TrendChart({Key? key, required this.title, required this.seriseLs, required this.unit}) : super(key: key);
   final List<Series<SeriesPt, DateTime>> seriseLs;
   final String title;
   final String unit;
@@ -185,8 +159,7 @@ class _TrendChartState extends State<TrendChart> {
   @override
   Widget build(BuildContext context) {
     charts.RenderSpec<num> renderSpecPrimary = AxisTheme.axisThemeNum();
-    charts.RenderSpec<DateTime> renderSpecDomain =
-        AxisTheme.axisThemeDateTime();
+    charts.RenderSpec<DateTime> renderSpecDomain = AxisTheme.axisThemeDateTime();
 
     _onSelectionChanged(charts.SelectionModel model) {
       final selectedDatum = model.selectedDatum;
@@ -223,25 +196,17 @@ class _TrendChartState extends State<TrendChart> {
             primaryMeasureAxis: charts.NumericAxisSpec(
               renderSpec: charts.SmallTickRendererSpec(
                 labelStyle: TextStyleSpec(color: charts.MaterialPalette.white),
-                axisLineStyle:
-                    LineStyleSpec(color: charts.MaterialPalette.gray.shade500),
+                axisLineStyle: LineStyleSpec(color: charts.MaterialPalette.gray.shade500),
               ),
             ),
             domainAxis: DateTimeAxisSpec(renderSpec: renderSpecDomain),
             behaviors: [
               charts.SeriesLegend(position: charts.BehaviorPosition.top),
-              charts.ChartTitle(widget.title,
-                  behaviorPosition: BehaviorPosition.top,
-                  titleStyleSpec: TextStyleSpec(
-                      color: charts.MaterialPalette.white.darker)),
+              charts.ChartTitle(widget.title, behaviorPosition: BehaviorPosition.top, titleStyleSpec: TextStyleSpec(color: charts.MaterialPalette.white.darker)),
               charts.ChartTitle('Time',
-                  behaviorPosition: charts.BehaviorPosition.bottom,
-                  titleStyleSpec: const charts.TextStyleSpec(
-                      fontSize: 14, color: charts.MaterialPalette.white)),
+                  behaviorPosition: charts.BehaviorPosition.bottom, titleStyleSpec: const charts.TextStyleSpec(fontSize: 14, color: charts.MaterialPalette.white)),
               charts.ChartTitle(widget.unit,
-                  behaviorPosition: charts.BehaviorPosition.start,
-                  titleStyleSpec: const charts.TextStyleSpec(
-                      fontSize: 14, color: charts.MaterialPalette.white))
+                  behaviorPosition: charts.BehaviorPosition.start, titleStyleSpec: const charts.TextStyleSpec(fontSize: 14, color: charts.MaterialPalette.white))
             ],
             selectionModels: [
               charts.SelectionModelConfig(
@@ -301,61 +266,25 @@ class SeriesCollection {
       disZLs.add(SeriesPt(time, dataSet.dis_z_pp));
     });
 
-    Series<SeriesPt, DateTime> accXSeries = Series(
-        id: 'X',
-        data: accXLs,
-        domainFn: (SeriesPt accpet, _) => accpet.time,
-        measureFn: (SeriesPt accpet, _) => accpet.value);
-    Series<SeriesPt, DateTime> accYSeries = Series(
-        id: 'Y',
-        data: accYLs,
-        domainFn: (SeriesPt accpet, _) => accpet.time,
-        measureFn: (SeriesPt accpet, _) => accpet.value);
-    Series<SeriesPt, DateTime> accZSeries = Series(
-        id: 'Z',
-        data: accZLs,
-        domainFn: (SeriesPt accpet, _) => accpet.time,
-        measureFn: (SeriesPt accpet, _) => accpet.value);
+    Series<SeriesPt, DateTime> accXSeries = Series(id: 'X', data: accXLs, domainFn: (SeriesPt accpet, _) => accpet.time, measureFn: (SeriesPt accpet, _) => accpet.value);
+    Series<SeriesPt, DateTime> accYSeries = Series(id: 'Y', data: accYLs, domainFn: (SeriesPt accpet, _) => accpet.time, measureFn: (SeriesPt accpet, _) => accpet.value);
+    Series<SeriesPt, DateTime> accZSeries = Series(id: 'Z', data: accZLs, domainFn: (SeriesPt accpet, _) => accpet.time, measureFn: (SeriesPt accpet, _) => accpet.value);
 
     accDataSeriseLs.add(accXSeries);
     accDataSeriseLs.add(accYSeries);
     accDataSeriseLs.add(accZSeries);
 
-    Series<SeriesPt, DateTime> velXSeries = Series(
-        id: 'X',
-        data: velXLs,
-        domainFn: (SeriesPt accpet, _) => accpet.time,
-        measureFn: (SeriesPt accpet, _) => accpet.value);
-    Series<SeriesPt, DateTime> velYSeries = Series(
-        id: 'Y',
-        data: velYLs,
-        domainFn: (SeriesPt accpet, _) => accpet.time,
-        measureFn: (SeriesPt accpet, _) => accpet.value);
-    Series<SeriesPt, DateTime> velZSeries = Series(
-        id: 'Z',
-        data: velZLs,
-        domainFn: (SeriesPt accpet, _) => accpet.time,
-        measureFn: (SeriesPt accpet, _) => accpet.value);
+    Series<SeriesPt, DateTime> velXSeries = Series(id: 'X', data: velXLs, domainFn: (SeriesPt accpet, _) => accpet.time, measureFn: (SeriesPt accpet, _) => accpet.value);
+    Series<SeriesPt, DateTime> velYSeries = Series(id: 'Y', data: velYLs, domainFn: (SeriesPt accpet, _) => accpet.time, measureFn: (SeriesPt accpet, _) => accpet.value);
+    Series<SeriesPt, DateTime> velZSeries = Series(id: 'Z', data: velZLs, domainFn: (SeriesPt accpet, _) => accpet.time, measureFn: (SeriesPt accpet, _) => accpet.value);
 
     velDataSeriseLs.add(velXSeries);
     velDataSeriseLs.add(velYSeries);
     velDataSeriseLs.add(velZSeries);
 
-    Series<SeriesPt, DateTime> disXSeries = Series(
-        id: 'X',
-        data: disXLs,
-        domainFn: (SeriesPt accpet, _) => accpet.time,
-        measureFn: (SeriesPt accpet, _) => accpet.value);
-    Series<SeriesPt, DateTime> disYSeries = Series(
-        id: 'Y',
-        data: disYLs,
-        domainFn: (SeriesPt accpet, _) => accpet.time,
-        measureFn: (SeriesPt accpet, _) => accpet.value);
-    Series<SeriesPt, DateTime> disZSeries = Series(
-        id: 'Z',
-        data: disZLs,
-        domainFn: (SeriesPt accpet, _) => accpet.time,
-        measureFn: (SeriesPt accpet, _) => accpet.value);
+    Series<SeriesPt, DateTime> disXSeries = Series(id: 'X', data: disXLs, domainFn: (SeriesPt accpet, _) => accpet.time, measureFn: (SeriesPt accpet, _) => accpet.value);
+    Series<SeriesPt, DateTime> disYSeries = Series(id: 'Y', data: disYLs, domainFn: (SeriesPt accpet, _) => accpet.time, measureFn: (SeriesPt accpet, _) => accpet.value);
+    Series<SeriesPt, DateTime> disZSeries = Series(id: 'Z', data: disZLs, domainFn: (SeriesPt accpet, _) => accpet.time, measureFn: (SeriesPt accpet, _) => accpet.value);
 
     disDataSeriseLs.add(disXSeries);
     disDataSeriseLs.add(disYSeries);
@@ -366,8 +295,7 @@ class SeriesCollection {
 }
 
 class SeriesLsToRender {
-  SeriesLsToRender(
-      this.acc_data_seriseLs, this.vel_data_seriseLs, this.dis_data_seriseLs);
+  SeriesLsToRender(this.acc_data_seriseLs, this.vel_data_seriseLs, this.dis_data_seriseLs);
   final List<Series<SeriesPt, DateTime>> acc_data_seriseLs;
   final List<Series<SeriesPt, DateTime>> vel_data_seriseLs;
   final List<Series<SeriesPt, DateTime>> dis_data_seriseLs;

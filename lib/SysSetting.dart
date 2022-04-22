@@ -51,5 +51,6 @@ class User {
 
   static void loadSetting() {
     API.getAPPSetting().then((value) => _setting = value);
+    print('SettingLoaded');
   }
 }
