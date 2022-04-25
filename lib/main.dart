@@ -2,14 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:ssmflutter/Pages/LandingPage.dart';
-import 'package:ssmflutter/Pages/QueryPage.dart';
-import 'package:ssmflutter/SSMModule/emulator.dart' as ssm_emulator;
-import 'package:ssmflutter/Pages/SettingPage.dart';
-import 'dart:async';
-import 'Pages/dataPage.dart';
-import './drawer.dart';
-import 'SSMModule/module.dart';
-import 'SysSetting.dart';
 import 'Pages/MainPage.dart';
 
 void main() async {

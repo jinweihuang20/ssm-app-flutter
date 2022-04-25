@@ -3,12 +3,11 @@
 import 'package:flutter/material.dart';
 import 'package:ssmflutter/Router/Routers.dart';
 
+import '../Chartslb/TimeLineChart.dart';
 import '../DeviceConnectPage.dart';
+import '../SysSetting.dart';
 import 'QueryPage.dart';
 import 'SettingPage.dart';
-
-import '../APPBarFactory.dart' as APPBarFactory;
-import '../main.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({Key? key}) : super(key: key);
@@ -25,7 +24,7 @@ class _MainPageState extends State<MainPage> {
 
   final _pageController = PageController(initialPage: 0);
   final Color bottomNavSelectedIconColor = const Color.fromARGB(255, 65, 128, 211);
-  final Color bottomNavNotSelectedIconColor = Colors.white;
+  Color bottomNavNotSelectedIconColor = Colors.white;
 
   ///要新增頁面的話就從這邊下手
   List<PageState> getPageStates() {
@@ -42,19 +41,31 @@ class _MainPageState extends State<MainPage> {
     List<Widget> ls = [];
     List.generate(pageStates.length, (index) {
       var state = pageStates[index];
+      String title = state.title;
       Icon icon = state.icon;
       Color iconColor = state.iconColor;
-      ls.add(IconButton(
-          onPressed: () {
-            _pageController.jumpToPage(index);
-            setState(() {
-              title = state.title;
-              _renderUI(index);
-            });
-          },
-          icon: icon,
-          color: iconColor,
-          iconSize: bottomNaveIconSize));
+      Widget widget = Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          IconButton(
+              onPressed: () {
+                _pageController.jumpToPage(index);
+                setState(() {
+                  title = state.title;
+                  _renderUI(index);
+                });
+              },
+              icon: icon,
+              color: iconColor,
+              iconSize: bottomNaveIconSize),
+          Text(
+            title,
+            style: TextStyle(color: iconColor, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 2),
+          )
+        ],
+      );
+
+      ls.add(widget);
     });
 
     return <Widget>[
@@ -89,8 +100,10 @@ class _MainPageState extends State<MainPage> {
   @override
   void initState() {
     super.initState();
+    User.loadSetting();
     setState(() {
       pageStates = getPageStates();
+      bottomNavNotSelectedIconColor = User.setting.appTheme == 'dark' ? Colors.white : Colors.black54;
       _renderUI(0);
     });
   }
@@ -120,7 +133,10 @@ class SubPage1 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Center(
-      child: Text('Page1'),
+      child: TimeLineChart(
+        title: "TEST",
+        dataSetList: [],
+      ),
     );
   }
 }

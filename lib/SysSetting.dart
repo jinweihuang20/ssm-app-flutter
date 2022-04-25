@@ -24,33 +24,33 @@ class SysSetting {
 }
 
 class User {
-  static SysSetting _setting = SysSetting();
+  static SysSetting setting = SysSetting();
 
-  static int get dataSaveDay => _setting.dataKeepDay;
+  static int get dataSaveDay => setting.dataKeepDay;
   static set dataSaveDay(int day) {
-    _setting.dataKeepDay = day;
+    setting.dataKeepDay = day;
     _saveToDB();
   }
 
-  static bool get writeDataToDb => _setting.saveDataToDB == 1;
+  static bool get writeDataToDb => setting.saveDataToDB == 1;
   static set writeDataToDb(bool v) {
-    _setting.saveDataToDB = v ? 1 : 0;
+    setting.saveDataToDB = v ? 1 : 0;
     _saveToDB();
   }
 
   static set appTheme(String value) {
     print('user set appTheme:$value');
-    _setting.appTheme = value;
+    setting.appTheme = value;
     _saveToDB();
   }
 
   static void _saveToDB() async {
-    print(_setting.toMap());
-    await API.saveAPPSetting(_setting);
+    print(setting.toMap());
+    await API.saveAPPSetting(setting);
   }
 
   static void loadSetting() {
-    API.getAPPSetting().then((value) => _setting = value);
+    API.getAPPSetting().then((value) => setting = value);
     print('SettingLoaded');
   }
 }
