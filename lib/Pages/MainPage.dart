@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:ssmflutter/Networks/WifiHelper.dart';
+import 'package:ssmflutter/Pages/FeaturesPage.dart';
 import 'package:ssmflutter/Pages/HomePage.dart';
 import 'package:ssmflutter/Router/Routers.dart';
 import 'package:badges/badges.dart';
@@ -22,6 +23,7 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> {
   String title = "HOME";
   HomePage homePage = HomePage();
+  FeaturesPage featuresPage = FeaturesPage();
   double bottomNaveIconSize = 30;
   Widget appBarRightWidget = const Text('');
   List<PageState> pageStates = [];
@@ -35,6 +37,7 @@ class _MainPageState extends State<MainPage> {
     return ButtonBar(
       alignment: MainAxisAlignment.center,
       children: [
+        IconButton(onPressed: () => {homePage.state.saveAccDataToMachine()}, icon: Icon(Icons.save)),
         IconButton(padding: EdgeInsets.all(1), onPressed: _homePagePauseFlag ? null : _homePagePause, icon: const Icon(Icons.pause_circle_outline)),
         IconButton(onPressed: !_homePagePauseFlag ? null : _homePageResume, icon: const Icon(Icons.play_arrow))
       ],
@@ -46,11 +49,23 @@ class _MainPageState extends State<MainPage> {
     List<PageState> ls = [];
 
     var homePageState = PageState(
-        badgeState: MyBadgeState(showBadge: false), pageWidget: homePage, title: 'HOME', icon: const Icon(Icons.home), iconColor: bottomNavNotSelectedIconColor);
+        badgeState: MyBadgeState(showBadge: false),
+        pageWidget: homePage,
+        title: '時/頻圖',
+        icon: const Icon(Icons.data_thresholding_sharp),
+        iconColor: bottomNavNotSelectedIconColor);
 
     homePageState.appBarWidget = _homePageControlWidget;
-
     ls.add(homePageState);
+
+    var featurePageState = PageState(
+        pageWidget: featuresPage,
+        title: '特徵值',
+        icon: const Icon(Icons.featured_play_list),
+        iconColor: bottomNavNotSelectedIconColor,
+        badgeState: MyBadgeState(showBadge: false));
+
+    ls.add(featurePageState);
 
     var deviceConnPageState = PageState(
         badgeState: MyBadgeState(showBadge: !isSSMConnected),
@@ -61,9 +76,7 @@ class _MainPageState extends State<MainPage> {
         title: '連線',
         icon: const Icon(Icons.settings_ethernet),
         iconColor: bottomNavNotSelectedIconColor);
-
     deviceConnPageState.appBarWidget = IconButton(onPressed: opQRCodeSacnner, icon: const Icon(Icons.qr_code_scanner_sharp));
-
     ls.add(deviceConnPageState);
 
     var quertPage = PageState(
@@ -145,7 +158,7 @@ class _MainPageState extends State<MainPage> {
       title = pageState.title;
 
       ///
-      if (activeIndex == 1) {
+      if (activeIndex == 2) {
         appBarBackgroundColor = isSSMConnected ? Colors.blue : Colors.red;
       } else {
         appBarBackgroundColor = Colors.blue;
@@ -180,7 +193,6 @@ class _MainPageState extends State<MainPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: appBarBackgroundColor,
         actions: [appBarRightWidget],
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -208,6 +220,7 @@ class _MainPageState extends State<MainPage> {
       isSSMConnected = connect;
       if (connect) {
         homePage.state.ssmModule = ssmModule;
+        featuresPage.state.ssmModule = ssmModule;
       }
     });
     print('ssm init connect :$isSSMConnected');
@@ -220,8 +233,11 @@ class _MainPageState extends State<MainPage> {
     setState(() {
       isSSMConnected = state.connected;
       pageStates = getPageStates();
-      _renderUI(1);
-      if (state.connected) homePage.state.ssmModule = state.ssmModule;
+      _renderUI(2);
+      if (state.connected) {
+        featuresPage.state.ssmModule = state.ssmModule;
+        homePage.state.ssmModule = state.ssmModule;
+      }
     });
   }
 

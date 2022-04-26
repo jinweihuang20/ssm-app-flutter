@@ -42,15 +42,20 @@ double toP2P(List<double> data) {
 ///速度量
 List<double> toVelocityList(List<double> accList, double sampingRate) {
   List<double> grmedLs = _removeGravity(accList);
-  List<double> ve =
-      _removeGravity(_trapezoidalAreaMethod_SeriesOut(grmedLs, sampingRate));
+
+  List<double> gmms2 = [];
+
+  List.generate(grmedLs.length, (index) => gmms2.add(grmedLs[index] * 9.81 * 1000)); //G=>mm/s^2
+
+  List<double> ve = _removeGravity(_trapezoidalAreaMethod_SeriesOut(gmms2, sampingRate));
   return ve;
 }
 
 ///位移量
 List<double> toDisplacementList(List<double> velList, double sampingRate) {
-  List<double> dis =
-      _removeGravity(_trapezoidalAreaMethod_SeriesOut(velList, sampingRate));
+  List<double> dis = _removeGravity(_trapezoidalAreaMethod_SeriesOut(velList, sampingRate));
+  List<double> umList = [];
+  List.generate(dis.length, (index) => umList.add(dis[index] * 1000)); //mm=>um
 
   return dis;
 }
@@ -75,21 +80,20 @@ List<double> _trapezoidalAreaMethod_SeriesOut(List<double> dataAry, double sampi
   List<double> trapeziodLs = [];
   trapeziodLs.add(0);
   for (var i = 1; i < dataAry.length; i++) {
-    double a1 = dataAry[i-1];
-    double a2 = dataAry[i ];
+    double a1 = dataAry[i - 1];
+    double a2 = dataAry[i];
     double area = (a1 + a2) * h / 2;
-    Area0+=area;
+    Area0 += area;
     trapeziodLs.add(Area0);
   }
   return trapeziodLs;
 }
 
-
 double _trapezoidalAreaMethod(List<double> dataAry, double sampingRate) {
   double h = 1 / sampingRate;
   double Area = 0;
   for (var i = 1; i < dataAry.length; i++) {
-    double a1 = dataAry[i-1];
+    double a1 = dataAry[i - 1];
     double a2 = dataAry[i];
     Area += (a1 + a2) * h / 2;
   }

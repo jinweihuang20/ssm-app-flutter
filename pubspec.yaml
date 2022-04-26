@@ -43,6 +43,8 @@ dependencies:
   wifi_iot: ^0.3.15+2
   badges: ^2.0.2
   qr_code_scanner: ^0.7.0
+  permission_handler: ^5.0.1+1
+  downloads_path_provider: ^0.1.0
   
 
 

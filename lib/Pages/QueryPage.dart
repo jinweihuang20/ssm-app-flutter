@@ -1,17 +1,12 @@
 // ignore_for_file: avoid_print
 
-import 'dart:convert';
-import 'package:charts_flutter/flutter.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
-import 'package:path/path.dart';
 import 'package:ssmflutter/Database/SensorData.dart';
-import '../Chartslb/LineChart.dart';
 import '../Chartslb/TimeLineChart.dart';
 import '../Database/SqliteAPI.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
-import '../Storage/Caches.dart';
+import '../MyWidget/Buttons.dart';
 
 class QueryPage extends StatefulWidget {
   QueryPage({Key? key}) : super(key: key);
@@ -22,6 +17,17 @@ class QueryPage extends StatefulWidget {
 }
 
 class _QueryPage extends State<QueryPage> with AutomaticKeepAliveClientMixin {
+  int _minQueryNow = 5;
+
+  final Color _activeBtnColor = const Color.fromARGB(255, 21, 64, 93);
+  final Color _nonActiveBtnColor = Colors.grey;
+
+  Map<int, Color> buttonColorMap = <int, Color>{
+    5: const Color.fromARGB(255, 21, 64, 93),
+    10: Colors.grey,
+    30: Colors.grey,
+  };
+
   @override
   // TODO: implement wantKeepAlive
   bool get wantKeepAlive => true;
@@ -36,36 +42,47 @@ class _QueryPage extends State<QueryPage> with AutomaticKeepAliveClientMixin {
       },
     ));
 
-    void queryLastFiveMinData() {
+    void queryData(int min) {
+      setState(() {
+        buttonColorMap[5] = _nonActiveBtnColor;
+        buttonColorMap[10] = _nonActiveBtnColor;
+        buttonColorMap[30] = _nonActiveBtnColor;
+        buttonColorMap[min] = _activeBtnColor;
+      });
+      _minQueryNow = min;
       endTime = DateTime.now();
-      startTime = endTime.add(const Duration(minutes: -5));
+      startTime = endTime.add(Duration(minutes: -min));
       query();
     }
 
-    void queryLastTenMinData() {
-      endTime = DateTime.now();
-      startTime = endTime.add(const Duration(minutes: -10));
-      query();
-    }
-
-    void queryLastThirtyMinData() {
-      endTime = DateTime.now();
-      startTime = endTime.add(const Duration(minutes: -30));
-      query();
-    }
-
-    var btn1 = ElevatedButton(onPressed: queryLastFiveMinData, child: const Text('過去5分鐘'), style: btnStyle);
     return SingleChildScrollView(
       child: Column(
         mainAxisSize: MainAxisSize.max,
         children: [
           const Padding(padding: EdgeInsets.only(top: 20)),
-          ButtonBar(
-            alignment: MainAxisAlignment.spaceAround,
+          Row(
             children: [
-              ElevatedButton(onPressed: queryLastFiveMinData, child: const Text('過去5分鐘'), style: btnStyle),
-              ElevatedButton(onPressed: queryLastTenMinData, child: const Text('過去10分鐘'), style: btnStyle),
-              ElevatedButton(onPressed: queryLastThirtyMinData, child: const Text('過去30分鐘'), style: btnStyle)
+              Expanded(
+                  child: iconButton(
+                      text: '過去5分鐘',
+                      onPressed: () {
+                        queryData(5);
+                      },
+                      color: buttonColorMap[5]!)),
+              Expanded(
+                  child: iconButton(
+                      text: '過去10分鐘',
+                      onPressed: () {
+                        queryData(10);
+                      },
+                      color: buttonColorMap[10]!)),
+              Expanded(
+                  child: iconButton(
+                      text: '過去30分鐘',
+                      onPressed: () {
+                        queryData(30);
+                      },
+                      color: buttonColorMap[30]!))
             ],
           ),
           const Divider(),
@@ -107,9 +124,9 @@ class _QueryPage extends State<QueryPage> with AutomaticKeepAliveClientMixin {
   DateTime endTime = DateTime.now();
   String timeSelectFor = 'start'; //'end'
 
-  List<Series<TimeSeriesPt, DateTime>> acc_data_seriseLs = [];
-  List<Series<TimeSeriesPt, DateTime>> vel_data_seriseLs = [];
-  List<Series<TimeSeriesPt, DateTime>> dis_data_seriseLs = [];
+  List<charts.Series<TimeSeriesPt, DateTime>> acc_data_seriseLs = [];
+  List<charts.Series<TimeSeriesPt, DateTime>> vel_data_seriseLs = [];
+  List<charts.Series<TimeSeriesPt, DateTime>> dis_data_seriseLs = [];
 
   List<TimeData> accData = [];
   List<TimeData> velData = [];

@@ -4,8 +4,10 @@ import 'package:ssmflutter/Database/SensorData.dart';
 import 'package:ssmflutter/Pages/ZoomOutShowPage.dart';
 import 'package:ssmflutter/SSMModule/FeatureDisplay.dart';
 import 'package:ssmflutter/SSMModule/module.dart';
+import 'package:ssmflutter/Storage/FileSaveLocalHelper.dart';
 import '../Database/SqliteAPI.dart' as db;
 import '../SysSetting.dart';
+import 'package:ssmflutter/Storage/FileSaveLocalHelper.dart' as FileSaveHelper;
 
 class HomePage extends StatefulWidget {
   HomePage({Key? key}) : super(key: key);
@@ -21,12 +23,15 @@ class _HomePageState extends State<HomePage> {
   List<SimpleData> fFtData = [];
   bool _pause = false;
   var features;
+
   set ssmModule(value) {
     _ssmMoudle = value;
-    _ssmMoudle.accDataOnChange.listen((event) {
-      accDataOnChangeHandle(event);
-    });
-    _ssmMoudle.startReadValue();
+    try {
+      _ssmMoudle.accDataOnChange.listen((event) {
+        accDataOnChangeHandle(event);
+      });
+      _ssmMoudle.startReadValue();
+    } catch (e) {}
   }
 
   void accDataOnChangeHandle(AccDataRevDoneEvent data) {
@@ -76,31 +81,43 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  void saveAccDataToMachine() async {
+    print('Save Data');
+
+    await FileNameHelper.displayTextInputDialog(context);
+    if (FileNameHelper.fileName == "") return;
+    String fileName = FileNameHelper.fileName + ".csv";
+    FileSaveHelper.saveRawAccData(fileName, accData).then((filePath) {
+      FileNameHelper.showSaveDoneDialog(context);
+      print('Data save ok, Path:$filePath');
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Container(
-        color: Colors.black,
-        child: Column(
-          children: [
-            getTitleWiget(const Icon(Icons.data_thresholding_sharp), "加速度", IconButton(onPressed: accZoomOut, icon: const Icon(Icons.zoom_out_map))),
-            divider(),
-            SizedBox(
-              height: 220,
-              child: accChart,
-            ),
-            const Divider(),
-            getTitleWiget(const Icon(Icons.data_thresholding_sharp), "FFT", IconButton(onPressed: fftZoomOut, icon: const Icon(Icons.zoom_out_map))),
-            divider(),
-            SizedBox(
-              height: 220,
-              child: fftChart,
-            ),
-            getTitleWiget(const Icon(Icons.data_thresholding_sharp), "特徵值", null),
-            divider(),
-            FeatureDisplay(features)
-          ],
-        ),
+    return Container(
+      color: Colors.black,
+      child: Column(
+        children: [
+          getTitleWiget(const Icon(Icons.data_thresholding_sharp), "加速度", IconButton(onPressed: accZoomOut, icon: const Icon(Icons.zoom_out_map))),
+          divider(),
+          Expanded(
+              child: SizedBox(
+            height: 220,
+            child: accChart,
+          )),
+          const Divider(),
+          getTitleWiget(const Icon(Icons.data_thresholding_sharp), "FFT", IconButton(onPressed: fftZoomOut, icon: const Icon(Icons.zoom_out_map))),
+          divider(),
+          Expanded(
+              child: SizedBox(
+            height: 220,
+            child: fftChart,
+          )),
+          getTitleWiget(const Icon(Icons.data_thresholding_sharp), "特徵值", null),
+          divider(),
+          Expanded(child: FeatureDisplay(features))
+        ],
       ),
     );
   }

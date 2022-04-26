@@ -23,6 +23,9 @@ class Module {
   StreamController<AccDataRevDoneEvent> changeController = StreamController<AccDataRevDoneEvent>();
   Stream<AccDataRevDoneEvent> get accDataOnChange => changeController.stream;
 
+  StreamController<FeatureDataRevData> featureDataController = StreamController<FeatureDataRevData>();
+  Stream<FeatureDataRevData> get featureDataOnChange => featureDataController.stream;
+
   get accDataByteRevNum {
     return accDataBuffer.length;
   }
@@ -92,24 +95,22 @@ class Module {
         features.dis_y_pp = toP2P(dis_y);
         features.dis_z_pp = toP2P(dis_z);
 
+        featureDataController.add(FeatureDataRevData(features));
         changeController.add(AccDataRevDoneEvent(data[0], data[1], data[2], fft_x, fft_y, fft_z, features));
         accDataBuffer.clear();
-
-        final timer = Timer(const Duration(seconds: 1), () {
-          try {
-            _ssmSocket?.write('READVALUE\r\n');
-          } catch (e) {
-            print(e);
-          }
-        });
-
-        // Future.delayed(const Duration(microseconds: 1000)).then((value) {
+        try {
+          _ssmSocket?.write('READVALUE\r\n');
+        } catch (e) {
+          print(e);
+        }
+        // final timer = Timer(const Duration(seconds: 1), () {
         //   try {
         //     _ssmSocket?.write('READVALUE\r\n');
         //   } catch (e) {
         //     print(e);
         //   }
         // });
+
       }
     } else {
       // print(packetRev);
@@ -204,6 +205,11 @@ class AccDataRevDoneEvent {
   List<double> fftData_Z = [];
   Features features = Features();
   AccDataRevDoneEvent(this.accData_X, this.accData_Y, this.accData_Z, this.fftData_X, this.fftData_Y, this.fftData_Z, this.features);
+}
+
+class FeatureDataRevData {
+  Features features = Features();
+  FeatureDataRevData(this.features);
 }
 
 ///特徵值
