@@ -16,8 +16,9 @@ import '../Storage/Caches.dart';
 class QueryPage extends StatefulWidget {
   QueryPage({Key? key}) : super(key: key);
 
+  _QueryPage state = _QueryPage();
   @override
-  State<QueryPage> createState() => _QueryPage();
+  State<QueryPage> createState() => state;
 }
 
 class _QueryPage extends State<QueryPage> with AutomaticKeepAliveClientMixin {
@@ -27,17 +28,44 @@ class _QueryPage extends State<QueryPage> with AutomaticKeepAliveClientMixin {
 
   @override
   Widget build(BuildContext context) {
+    var btnStyle = ButtonStyle(backgroundColor: MaterialStateProperty.resolveWith(
+      (Set<MaterialState> states) {
+        print(states);
+        if (states.contains(MaterialState.pressed)) return Colors.red;
+        return Colors.green; // Use the component's default.
+      },
+    ));
+
+    void queryLastFiveMinData() {
+      endTime = DateTime.now();
+      startTime = endTime.add(const Duration(minutes: -5));
+      query();
+    }
+
+    void queryLastTenMinData() {
+      endTime = DateTime.now();
+      startTime = endTime.add(const Duration(minutes: -10));
+      query();
+    }
+
+    void queryLastThirtyMinData() {
+      endTime = DateTime.now();
+      startTime = endTime.add(const Duration(minutes: -30));
+      query();
+    }
+
+    var btn1 = ElevatedButton(onPressed: queryLastFiveMinData, child: const Text('過去5分鐘'), style: btnStyle);
     return SingleChildScrollView(
       child: Column(
         mainAxisSize: MainAxisSize.max,
         children: [
           const Padding(padding: EdgeInsets.only(top: 20)),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
+          ButtonBar(
+            alignment: MainAxisAlignment.spaceAround,
             children: [
-              ElevatedButton(onPressed: queryLastFiveMinData, child: const Text('過去5分鐘')),
-              ElevatedButton(onPressed: queryLastTenMinData, child: const Text('過去10分鐘')),
-              ElevatedButton(onPressed: queryLastThirtyMinData, child: const Text('過去30分鐘'))
+              ElevatedButton(onPressed: queryLastFiveMinData, child: const Text('過去5分鐘'), style: btnStyle),
+              ElevatedButton(onPressed: queryLastTenMinData, child: const Text('過去10分鐘'), style: btnStyle),
+              ElevatedButton(onPressed: queryLastThirtyMinData, child: const Text('過去30分鐘'), style: btnStyle)
             ],
           ),
           const Divider(),
@@ -46,6 +74,7 @@ class _QueryPage extends State<QueryPage> with AutomaticKeepAliveClientMixin {
             height: 200,
             child: TimeLineChart(
               title: "加速度",
+              yAxisTitle: "G",
               dataSetList: accData,
             ),
           ),
@@ -55,6 +84,7 @@ class _QueryPage extends State<QueryPage> with AutomaticKeepAliveClientMixin {
             height: 200,
             child: TimeLineChart(
               title: "速度",
+              yAxisTitle: "mm/s",
               dataSetList: velData,
             ),
           ),
@@ -64,6 +94,7 @@ class _QueryPage extends State<QueryPage> with AutomaticKeepAliveClientMixin {
             height: 200,
             child: TimeLineChart(
               title: "位移",
+              yAxisTitle: "um",
               dataSetList: disData,
             ),
           ),
@@ -96,6 +127,10 @@ class _QueryPage extends State<QueryPage> with AutomaticKeepAliveClientMixin {
     print('Query Page Disposed');
   }
 
+  void refresh() {
+    print('refresh');
+  }
+
   void showDateTimePicker(context) {
     DatePicker.showDateTimePicker(
       context,
@@ -117,24 +152,6 @@ class _QueryPage extends State<QueryPage> with AutomaticKeepAliveClientMixin {
       currentTime: DateTime.now(),
       locale: LocaleType.tw,
     );
-  }
-
-  void queryLastFiveMinData() {
-    endTime = DateTime.now();
-    startTime = endTime.add(const Duration(minutes: -5));
-    query();
-  }
-
-  void queryLastTenMinData() {
-    endTime = DateTime.now();
-    startTime = endTime.add(const Duration(minutes: -10));
-    query();
-  }
-
-  void queryLastThirtyMinData() {
-    endTime = DateTime.now();
-    startTime = endTime.add(const Duration(minutes: -30));
-    query();
   }
 
   Future<List<SensorData>> query() async {

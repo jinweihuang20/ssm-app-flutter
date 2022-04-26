@@ -7,7 +7,6 @@ import 'package:ssmflutter/MathLib/FeatureCalculator.dart';
 
 class Module {
   Module({required this.ip, required this.port});
-
   final String ip;
   final int port;
 
@@ -95,15 +94,25 @@ class Module {
 
         changeController.add(AccDataRevDoneEvent(data[0], data[1], data[2], fft_x, fft_y, fft_z, features));
         accDataBuffer.clear();
-        await Future.delayed(const Duration(microseconds: 444));
-        try {
-          _ssmSocket?.write('READVALUE\r\n');
-        } catch (e) {
-          print(e);
-        }
+
+        final timer = Timer(const Duration(seconds: 1), () {
+          try {
+            _ssmSocket?.write('READVALUE\r\n');
+          } catch (e) {
+            print(e);
+          }
+        });
+
+        // Future.delayed(const Duration(microseconds: 1000)).then((value) {
+        //   try {
+        //     _ssmSocket?.write('READVALUE\r\n');
+        //   } catch (e) {
+        //     print(e);
+        //   }
+        // });
       }
     } else {
-      print(packetRev);
+      // print(packetRev);
       if (packetRev.length == 8) {
         accDataBuffer.clear();
         isParameterSetDone = true;

@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:ssmflutter/Pages/LandingPage.dart';
 import 'Pages/MainPage.dart';
+import 'SysSetting.dart';
 
 void main() async {
   runApp(const MyApp());
@@ -17,9 +18,9 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo -20220414',
       theme: ThemeData(primarySwatch: Colors.blue, brightness: Brightness.dark),
-      themeMode: ThemeMode.system,
+      themeMode: ThemeMode.dark,
       debugShowCheckedModeBanner: true,
-      initialRoute: "/landing",
+      initialRoute: "/",
       routes: {
         '/landing': (context) => const LandingPage(),
         '/': (context) => const MainPage(),

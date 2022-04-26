@@ -17,11 +17,8 @@ class _FeatureDisplayState extends State<FeatureDisplay> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [Icon(Icons.data_array), const Text('特徵值')],
-        ),
         Card(
+          color: Colors.black,
           child: Column(
             children: [
               Row(
@@ -32,7 +29,6 @@ class _FeatureDisplayState extends State<FeatureDisplay> {
                   Text('OA-Z', style: titleTextStyle),
                 ],
               ),
-              const Divider(),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
@@ -53,7 +49,9 @@ class _FeatureDisplayState extends State<FeatureDisplay> {
             ],
           ),
         ),
+        divider(),
         Card(
+          color: Colors.black,
           child: Column(
             children: [
               Row(
@@ -64,7 +62,6 @@ class _FeatureDisplayState extends State<FeatureDisplay> {
                   Text('ACC P2P-Z', style: titleTextStyle),
                 ],
               ),
-              const Divider(),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
@@ -85,7 +82,9 @@ class _FeatureDisplayState extends State<FeatureDisplay> {
             ],
           ),
         ),
+        divider(),
         Card(
+          color: Colors.black,
           child: Column(
             children: [
               Row(
@@ -96,7 +95,6 @@ class _FeatureDisplayState extends State<FeatureDisplay> {
                   Text('VEL RMS-Z', style: titleTextStyle),
                 ],
               ),
-              const Divider(),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
@@ -117,7 +115,9 @@ class _FeatureDisplayState extends State<FeatureDisplay> {
             ],
           ),
         ),
+        divider(),
         Card(
+          color: Colors.black,
           child: Column(
             children: [
               Row(
@@ -128,7 +128,6 @@ class _FeatureDisplayState extends State<FeatureDisplay> {
                   Text('DIS P2P-Z', style: titleTextStyle),
                 ],
               ),
-              const Divider(),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
@@ -150,6 +149,14 @@ class _FeatureDisplayState extends State<FeatureDisplay> {
           ),
         )
       ],
+    );
+  }
+
+  Divider divider() {
+    return const Divider(
+      thickness: 1,
+      indent: 20,
+      endIndent: 20,
     );
   }
 }

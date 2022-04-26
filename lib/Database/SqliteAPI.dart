@@ -26,12 +26,13 @@ class API {
     var dbFilePath = join(await getDatabasesPath(), '$appSettingDBName');
     Database database = await openDatabase(dbFilePath, onCreate: (db, version) {
       return db.execute(
-        "CREATE TABLE $appSettingTableName(scope TEXT PRIMARY KEY, appTheme TEXT, saveDataToDB REAL, dataKeepDay REAL)",
+        "CREATE TABLE $appSettingTableName(scope TEXT PRIMARY KEY, appTheme TEXT, saveDataToDB REAL, dataKeepDay REAL, ssmIp TEXT, ssmPort REAL)",
       );
-    }, version: 1);
+    }, version: 24);
     return database;
   }
 
+  ///插入一筆振動數據到資料庫
   static Future<void> insertData(SensorData data) async {
     Database database = await openDB();
 
@@ -42,6 +43,38 @@ class API {
     }
   }
 
+  ///從資料庫中刪除N天以前的振動數據
+  ///
+  ///@param day 指定的天數.
+  static Future<int> delete(int day) async {
+    List<Map<String, Object?>>? ls = [];
+    Database database = await openDB();
+    try {
+      var startTimeStr = DateTime.now().add(Duration(days: -day)).toIso8601String();
+      String condition = "time <= '" + startTimeStr + "'";
+      return await database.delete(tableName, where: condition);
+    } catch (e) {
+      print(e);
+      return -1;
+    }
+  }
+
+  ///從資料庫中刪除所有的振動數據
+  ///
+  static Future<int> deleteAll() async {
+    List<Map<String, Object?>>? ls = [];
+    Database database = await openDB();
+    try {
+      var startTimeStr = DateTime.now().add(const Duration(days: 1)).toIso8601String();
+      String condition = "time <= '" + startTimeStr + "'";
+      return await database.delete(tableName, where: condition);
+    } catch (e) {
+      print(e);
+      return -1;
+    }
+  }
+
+  ///從資料庫中查詢所有的振動數據
   static Future<List<Map<String, Object?>>?> queryOut() async {
     List<Map<String, Object?>>? ls = [];
     Database database = await openDB();
@@ -54,14 +87,13 @@ class API {
     return ls;
   }
 
-  static Future<List<Map<String, dynamic?>>> queryOutWithTimeInterval(
-      DateTime start, DateTime end) async {
+  ///從資料庫中查詢特定時間區間的振動數據
+  static Future<List<Map<String, dynamic?>>> queryOutWithTimeInterval(DateTime start, DateTime end) async {
     List<Map<String, dynamic>> ls = [];
     Database database = await openDB();
     String startTimeStr = start.toIso8601String();
     String endTimeStr = end.toIso8601String();
-    String condition =
-        "time BETWEEN '" + startTimeStr + "' AND '" + endTimeStr + "'";
+    String condition = "time BETWEEN '" + startTimeStr + "' AND '" + endTimeStr + "'";
     print(condition);
     try {
       ls = await database.query(tableName, where: condition);
@@ -73,24 +105,28 @@ class API {
     return ls;
   }
 
+  ///將用戶設定儲存至資料庫
   static saveAPPSetting(SysSetting setting) async {
     try {
       var db = await openAPPSettingDB();
 
       var existLs = await db.query(appSettingTableName);
       if (existLs.isNotEmpty) {
-        await db.update(appSettingTableName, setting.toMap(),
-            where: "scope == 'user'");
+        await db.update(appSettingTableName, setting.toMap(), where: "scope == 'user'");
       } else {
         await db.insert(appSettingTableName, setting.toMap());
       }
       getAPPSetting();
       print('ok-' '${setting.toMap()}');
     } catch (ee) {
+      var dbFilePath = join(await getDatabasesPath(), '$appSettingDBName');
+      deleteDatabase(dbFilePath);
+      saveAPPSetting(setting);
       print(ee);
     }
   }
 
+  ///從資料庫取得用戶設定
   static Future<SysSetting> getAPPSetting() async {
     SysSetting settings = SysSetting();
 
@@ -99,12 +135,16 @@ class API {
     if (existLs.isNotEmpty) {
       var settingMap = existLs.first;
       settings.appTheme = settingMap['appTheme'].toString();
-      settings.saveDataToDB = int.parse(
-          double.parse(settingMap['saveDataToDB'].toString())
-              .toStringAsFixed(0));
-      settings.dataKeepDay = int.parse(
-          double.parse(settingMap['dataKeepDay'].toString())
-              .toStringAsFixed(0));
+      settings.saveDataToDB = int.parse(double.parse(settingMap['saveDataToDB'].toString()).toStringAsFixed(0));
+      settings.dataKeepDay = int.parse(double.parse(settingMap['dataKeepDay'].toString()).toStringAsFixed(0));
+      try {
+        settings.ssmIp = settingMap['ssmIp'].toString();
+        settings.ssmPort = int.parse(double.parse(settingMap['ssmPort'].toString()).toStringAsFixed(0));
+      } catch (e) {
+        settings.ssmIp = '127.0.0.1';
+        settings.ssmPort = 5000;
+      }
+
       print('from db :' + settings.toMap().toString());
     }
 

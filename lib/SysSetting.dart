@@ -6,6 +6,8 @@ import './Database/SqliteAPI.dart';
 class SysSetting {
   String scope = "user";
   String appTheme = "dark";
+  String ssmIp = '192.168.0.68';
+  int ssmPort = 5000;
 
   ///是否要存到DB 0 : NO ; 1:OK!!
   int saveDataToDB = 1;
@@ -14,13 +16,13 @@ class SysSetting {
   SysSetting();
 
   Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'scope': scope,
-      'appTheme': appTheme,
-      'saveDataToDB': saveDataToDB,
-      'dataKeepDay': dataKeepDay,
-    };
+    return <String, dynamic>{'scope': scope, 'appTheme': appTheme, 'saveDataToDB': saveDataToDB, 'dataKeepDay': dataKeepDay, 'ssmIp': ssmIp, 'ssmPort': ssmPort};
   }
+}
+
+class SSMConnection {
+  String ip = '192.168.0.68';
+  int port = 5000;
 }
 
 class User {
@@ -44,13 +46,18 @@ class User {
     _saveToDB();
   }
 
+  static void ssmModule(String ip, int port) {
+    setting.ssmIp = ip;
+    setting.ssmPort = port;
+    _saveToDB();
+  }
+
   static void _saveToDB() async {
     print(setting.toMap());
     await API.saveAPPSetting(setting);
   }
 
-  static void loadSetting() {
-    API.getAPPSetting().then((value) => setting = value);
-    print('SettingLoaded');
+  static Future<SysSetting> loadSetting() async {
+    return await API.getAPPSetting();
   }
 }

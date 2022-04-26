@@ -21,22 +21,22 @@ class _TimeLineChartState extends State<TimeLineChart> with AutomaticKeepAliveCl
   ChartTitle<DateTime> xAxisTitle = ChartTitle('title');
 
   @override
-  // TODO: implement wantKeepAlive
   bool get wantKeepAlive => true;
   @override
   Widget build(BuildContext context) {
     var axis = charts.NumericAxisSpec(
         showAxisLine: true,
+        tickProviderSpec: const NumericEndPointsTickProviderSpec(),
         renderSpec: charts.GridlineRendererSpec(
-            labelStyle: charts.TextStyleSpec(fontSize: 10, color: charts.MaterialPalette.white),
+            labelStyle: const charts.TextStyleSpec(fontSize: 10, color: charts.MaterialPalette.white),
             axisLineStyle: LineStyleSpec(thickness: 1, color: charts.MaterialPalette.gray.shadeDefault),
             lineStyle: charts.LineStyleSpec(thickness: 0, color: charts.MaterialPalette.gray.shadeDefault)));
 
-    var axis_time = charts.DateTimeAxisSpec(
+    var axisTime = charts.DateTimeAxisSpec(
         showAxisLine: true,
-        tickProviderSpec: DateTimeEndPointsTickProviderSpec(),
+        tickProviderSpec: const DateTimeEndPointsTickProviderSpec(),
         renderSpec: charts.GridlineRendererSpec(
-            labelStyle: charts.TextStyleSpec(fontSize: 10, color: charts.MaterialPalette.white),
+            labelStyle: const charts.TextStyleSpec(fontSize: 10, color: charts.MaterialPalette.white),
             axisLineStyle: LineStyleSpec(thickness: 1, color: charts.MaterialPalette.gray.shadeDefault),
             lineStyle: charts.LineStyleSpec(thickness: 0, color: charts.MaterialPalette.gray.shadeDefault)));
 
@@ -59,7 +59,7 @@ class _TimeLineChartState extends State<TimeLineChart> with AutomaticKeepAliveCl
             charts.ChartTitle(widget.yAxisTitle,
                 behaviorPosition: charts.BehaviorPosition.start, titleStyleSpec: const charts.TextStyleSpec(fontSize: 14, color: charts.MaterialPalette.white)),
           ],
-          domainAxis: axis_time,
+          domainAxis: axisTime,
           primaryMeasureAxis: axis,
         ),
       ),
@@ -70,14 +70,14 @@ class _TimeLineChartState extends State<TimeLineChart> with AutomaticKeepAliveCl
     List<DateTime> timeList = [];
     List<double> values = [];
 
-    for (var i = 0; i < 120; i++) {
+    for (var i = 0; i < 0; i++) {
       timeList.add(DateTime.now().add(Duration(seconds: i)));
       values.add(Random().nextDouble());
     }
 
-    TimeData s1Data = TimeData(name: 's1', timeList: timeList, values: values);
-    TimeData s2Data = TimeData(name: 's2', timeList: timeList, values: values);
-    TimeData s3Data = TimeData(name: 's3', timeList: timeList, values: values);
+    TimeData s1Data = TimeData(name: 'X', timeList: timeList, values: values);
+    TimeData s2Data = TimeData(name: 'Y', timeList: timeList, values: values);
+    TimeData s3Data = TimeData(name: 'Z', timeList: timeList, values: values);
 
     return _genSeriesDataList([s1Data, s2Data, s3Data]);
   }

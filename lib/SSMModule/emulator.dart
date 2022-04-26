@@ -4,92 +4,88 @@ import 'dart:io';
 import 'dart:math' as math;
 import "dart:typed_data";
 
-
 import 'package:flutter/material.dart';
 
 class Emulator {
-  static  String ip ='127.0.0.1';
+  static String ip = '127.0.0.1';
   static int port = 5000;
-  static  ServerSocket? serverSocket;
+  static ServerSocket? serverSocket;
 }
 
- void  start(String ip, int port) {
+void start(String ip, int port) {
   ServerSocket.bind(ip, port).then((serverSocket) => {
         Emulator.serverSocket = serverSocket,
-    Emulator.ip = ip, Emulator.port = port,
+        Emulator.ip = ip,
+        Emulator.port = port,
         print('server build..$ip:$port'),
-        serverSocket.listen((client) {
-          client.listen((data) async{
-            if(data[0]==83){
-              client.add(data.sublist(1,9));
+        serverSocket.listen((client) async {
+          client.listen((data) async {
+            if (data[0] == 83) {
+              client.add(data.sublist(1, 9));
             }
-            if( String.fromCharCodes(data).contains('READVALUE')){
-              client.add(fakeData());
+            if (String.fromCharCodes(data).contains('READVALUE')) {
+              print('模擬器 song' + client.port.toString());
+              var data = await fakeData();
+              client.add(data);
             }
-
           });
         })
       });
 }
 
-List<int> fakeData() {
-  List<int> ls = List.filled(3072,0);
-  List<int> x =  sineWave(233);
-  List<int> y =  sineWave(1200);
-  List<int> z =  sineWave(2000);
-  for (var i = 0 ; i<512 ;i++){
-     var bytes_x =  intToBytes(x[i]);
-     var bytes_y =  intToBytes(y[i]);
-     var bytes_z =  intToBytes(z[i]);
-     int lowx =  bytes_x[0];
-     int highx =  bytes_x[1];
-     int lowy =  bytes_y[0];
-     int highy =  bytes_y[1];
-     int lowz =  bytes_z[0];
-     int highz =  bytes_z[1];
+Future<List<int>> fakeData() async {
+  List<int> ls = List.filled(3072, 0);
+  List<int> x = sineWave(233);
+  List<int> y = sineWave(1200);
+  List<int> z = sineWave(2000);
+  for (var i = 0; i < 512; i++) {
+    var bytes_x = intToBytes(x[i]);
+    var bytes_y = intToBytes(y[i]);
+    var bytes_z = intToBytes(z[i]);
+    int lowx = bytes_x[0];
+    int highx = bytes_x[1];
+    int lowy = bytes_y[0];
+    int highy = bytes_y[1];
+    int lowz = bytes_z[0];
+    int highz = bytes_z[1];
 
-     ls[i] = lowx;
-     ls[i+512] = highx;
-     ls[i+1024] = lowy;
-     ls[i+1024+512] = highy;
-     ls[i+2048] = lowz;
-     ls[i+2048+512] = highz;
+    ls[i] = lowx;
+    ls[i + 512] = highx;
+    ls[i + 1024] = lowy;
+    ls[i + 1024 + 512] = highy;
+    ls[i + 2048] = lowz;
+    ls[i + 2048 + 512] = highz;
     //0 512 , 1 513 , 2 514  511 1023    1024 1536
   }
   return ls;
 }
 
-List<int> sineWave(freq){
-  List<int> ls= [];
-  for (var i =0 ; i<512;i++){
-    var d= (_sinPt(i, freq)*5*1000).toStringAsFixed(0);
-      ls.add( int.parse(d));
+List<int> sineWave(freq) {
+  List<int> ls = [];
+  for (var i = 0; i < 512; i++) {
+    var d = (_sinPt(i, freq) * 5 * 1000).toStringAsFixed(0);
+    ls.add(int.parse(d));
   }
   return ls;
 }
 
-
- List<int> intToBytes(int value){
+List<int> intToBytes(int value) {
   var bdata = ByteData(8);
   bdata.setInt32(0, value);
   int low = bdata.getUint16(0);
   int high = bdata.getUint16(1);
-  return [high,low];
+  return [high, low];
 }
 
-double _sinPt(int number,freq){
-  var sampleFreq = 8000.0/freq;
-  var noise = 100*math.Random().nextDouble();
-  return noise+ 700* math.sin(  number/ (sampleFreq /(math.pi *2)));
+double _sinPt(int number, freq) {
+  var sampleFreq = 8000.0 / freq;
+  var noise = 100 * math.Random().nextDouble();
+  return noise + 700 * math.sin(number / (sampleFreq / (math.pi * 2)));
 }
 
-void restart(){
-  try{
+void restart() {
+  try {
     Emulator.serverSocket?.close();
-  }
-  catch(err) {
-  }
-  start(Emulator.ip,Emulator.port);
+  } catch (err) {}
+  start(Emulator.ip, Emulator.port);
 }
-
-
