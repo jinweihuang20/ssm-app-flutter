@@ -7,7 +7,8 @@ class HomeWidget extends StatefulWidget {
   State<HomeWidget> createState() => _HomeWidgetState();
 }
 
-class _HomeWidgetState extends State<HomeWidget> with AutomaticKeepAliveClientMixin {
+class _HomeWidgetState extends State<HomeWidget>
+    with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
   @override
@@ -19,7 +20,6 @@ class _HomeWidgetState extends State<HomeWidget> with AutomaticKeepAliveClientMi
   }
 
   void _showConnectPage() {
-    print('go connect page');
     Navigator.pushNamed(context, "/connect");
   }
 }

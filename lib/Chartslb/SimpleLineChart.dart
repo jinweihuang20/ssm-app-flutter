@@ -15,7 +15,9 @@ class SimpleLineChart extends StatefulWidget {
       this.showLegend = true,
       this.showTitle = true,
       this.useNumericEndPointsTickProviderSpec = false,
-      this.ledgenPosition = charts.BehaviorPosition.end})
+      this.ledgenPosition = charts.BehaviorPosition.end,
+      this.showZoomOutButton = false,
+      this.zoomButtonOnClick})
       : super(key: key);
   final String title;
   final String yAxisTitle;
@@ -25,11 +27,14 @@ class SimpleLineChart extends StatefulWidget {
   final bool useNumericEndPointsTickProviderSpec;
   final bool showTitle;
   final charts.BehaviorPosition ledgenPosition;
+  final Function()? zoomButtonOnClick;
+  final bool showZoomOutButton;
   @override
   State<SimpleLineChart> createState() => _SimpleLineChartState();
 }
 
-class _SimpleLineChartState extends State<SimpleLineChart> with AutomaticKeepAliveClientMixin {
+class _SimpleLineChartState extends State<SimpleLineChart>
+    with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
 
@@ -37,29 +42,67 @@ class _SimpleLineChartState extends State<SimpleLineChart> with AutomaticKeepAli
   Widget build(BuildContext context) {
     var axis = charts.NumericAxisSpec(
         showAxisLine: true,
-        tickProviderSpec: widget.useNumericEndPointsTickProviderSpec ? const NumericEndPointsTickProviderSpec() : null,
-        renderSpec: charts.GridlineRendererSpec(
-            labelStyle: const charts.TextStyleSpec(fontSize: 10, color: charts.MaterialPalette.white),
-            axisLineStyle: LineStyleSpec(thickness: 1, color: charts.MaterialPalette.gray.shadeDefault),
-            lineStyle: charts.LineStyleSpec(thickness: 0, color: charts.MaterialPalette.gray.shadeDefault)));
+        tickProviderSpec: widget.useNumericEndPointsTickProviderSpec
+            ? const NumericEndPointsTickProviderSpec()
+            : null,
+        renderSpec: const charts.GridlineRendererSpec(
+            labelStyle: charts.TextStyleSpec(
+                fontSize: 10, color: charts.MaterialPalette.white),
+            axisLineStyle: LineStyleSpec(
+                thickness: 1, color: charts.MaterialPalette.white),
+            lineStyle: charts.LineStyleSpec(
+                thickness: 1, color: charts.MaterialPalette.white)));
 
-    return Center(
-      child: charts.LineChart(
-        widget.dataSetList.isEmpty ? getDefual() : _genSeriesDataList(widget.dataSetList),
-        animate: false,
-        behaviors: [
-          charts.SeriesLegend(position: widget.ledgenPosition, showMeasures: true),
-          charts.ChartTitle(widget.showTitle ? widget.title : "",
-              behaviorPosition: BehaviorPosition.top, titleStyleSpec: TextStyleSpec(color: charts.MaterialPalette.white.darker)),
-          charts.ChartTitle(widget.xAxistTitle,
-              behaviorPosition: charts.BehaviorPosition.bottom, titleStyleSpec: const charts.TextStyleSpec(fontSize: 14, color: charts.MaterialPalette.white)),
-          charts.ChartTitle(widget.yAxisTitle,
-              behaviorPosition: charts.BehaviorPosition.start, titleStyleSpec: const charts.TextStyleSpec(fontSize: 14, color: charts.MaterialPalette.white)),
-        ],
-        domainAxis: axis,
-        primaryMeasureAxis: axis,
-      ),
+    var chart = charts.LineChart(
+      widget.dataSetList.isEmpty
+          ? getDefual()
+          : _genSeriesDataList(widget.dataSetList),
+      animate: false,
+      behaviors: [
+        charts.SeriesLegend(
+            position: widget.ledgenPosition,
+            showMeasures: true,
+            cellPadding: const EdgeInsets.all(
+              1,
+            )),
+        charts.ChartTitle(widget.showTitle ? widget.title : "",
+            behaviorPosition: BehaviorPosition.top,
+            titleStyleSpec: const TextStyleSpec(
+                color: charts.MaterialPalette.white, lineHeight: 1)),
+        charts.ChartTitle(widget.xAxistTitle,
+            behaviorPosition: charts.BehaviorPosition.bottom,
+            titleStyleSpec: const charts.TextStyleSpec(
+                fontSize: 14, color: charts.MaterialPalette.white)),
+        charts.ChartTitle(widget.yAxisTitle,
+            behaviorPosition: charts.BehaviorPosition.start,
+            titleStyleSpec: const charts.TextStyleSpec(
+                fontSize: 14, color: charts.MaterialPalette.white)),
+      ],
+      domainAxis: axis,
+      primaryMeasureAxis: axis,
     );
+
+    var zoomWidget = Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        IconButton(
+            alignment: Alignment.topRight,
+            onPressed: widget.zoomButtonOnClick,
+            icon: const Icon(
+              Icons.zoom_out_map_sharp,
+              size: 18,
+            ))
+      ],
+    );
+    if (widget.showZoomOutButton) {
+      return Center(
+        child: Stack(
+          children: [zoomWidget, chart],
+        ),
+      );
+    } else {
+      return chart;
+    }
   }
 }
 
@@ -79,20 +122,30 @@ List<Series<dynamic, double>> getDefual() {
   return _genSeriesDataList([s1Data, s2Data, s3Data]);
 }
 
-List<Series<SimpleSeriesPt, double>> _genSeriesDataList(List<SimpleData> userDataSetList) {
+List<Series<SimpleSeriesPt, double>> _genSeriesDataList(
+    List<SimpleData> userDataSetList) {
   List<Series<SimpleSeriesPt, double>> seriesList = [];
 
-  List.generate(userDataSetList.length, (index) => {seriesList.add(_genSeriesData(userDataSetList[index]))});
+  List.generate(userDataSetList.length,
+      (index) => {seriesList.add(_genSeriesData(userDataSetList[index]))});
 
   return seriesList;
 }
 
 Series<SimpleSeriesPt, double> _genSeriesData(SimpleData userData) {
   List<SimpleSeriesPt> ptList = [];
-  List.generate(userData.xList.length, (index) => {ptList.add(SimpleSeriesPt(userData.xList[index], userData.values[index]))});
+  List.generate(
+      userData.xList.length,
+      (index) => {
+            ptList.add(
+                SimpleSeriesPt(userData.xList[index], userData.values[index]))
+          });
 
-  Series<SimpleSeriesPt, double> series =
-      Series(id: userData.name, data: ptList, domainFn: (SimpleSeriesPt accpet, _) => accpet.xval, measureFn: (SimpleSeriesPt accpet, _) => accpet.value);
+  Series<SimpleSeriesPt, double> series = Series(
+      id: userData.name,
+      data: ptList,
+      domainFn: (SimpleSeriesPt accpet, _) => accpet.xval,
+      measureFn: (SimpleSeriesPt accpet, _) => accpet.value);
   return series;
 }
 

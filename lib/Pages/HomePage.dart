@@ -1,3 +1,5 @@
+// ignore_for_file: curly_braces_in_flow_control_structures, avoid_print, empty_catches
+
 import 'package:flutter/material.dart';
 import 'package:ssmflutter/Chartslb/SimpleLineChart.dart';
 import 'package:ssmflutter/Database/SensorData.dart';
@@ -35,7 +37,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   void accDataOnChangeHandle(AccDataRevDoneEvent data) {
-    var len = data.accData_X.length;
     _dbSave(data.features);
     _dataToSeriesDataOfChart(data);
     features = data.features;
@@ -66,8 +67,9 @@ class _HomePageState extends State<HomePage> {
       dataSetList: accData,
       xAxistTitle: "Index",
       yAxisTitle: "G",
-      showTitle: false,
       useNumericEndPointsTickProviderSpec: true,
+      showZoomOutButton: true,
+      zoomButtonOnClick: accZoomOut,
     );
   }
 
@@ -77,7 +79,8 @@ class _HomePageState extends State<HomePage> {
       dataSetList: fFtData,
       xAxistTitle: "Freq(Hz)",
       yAxisTitle: 'Mag(G)',
-      showTitle: false,
+      showZoomOutButton: true,
+      zoomButtonOnClick: fftZoomOut,
     );
   }
 
@@ -99,53 +102,45 @@ class _HomePageState extends State<HomePage> {
       color: Colors.black,
       child: Column(
         children: [
-          getTitleWiget(const Icon(Icons.data_thresholding_sharp), "加速度", IconButton(onPressed: accZoomOut, icon: const Icon(Icons.zoom_out_map))),
-          divider(),
           Expanded(
-              child: SizedBox(
-            height: 220,
+            flex: 1,
             child: accChart,
-          )),
-          const Divider(),
-          getTitleWiget(const Icon(Icons.data_thresholding_sharp), "FFT", IconButton(onPressed: fftZoomOut, icon: const Icon(Icons.zoom_out_map))),
+          ),
           divider(),
           Expanded(
-              child: SizedBox(
-            height: 220,
+            flex: 1,
             child: fftChart,
-          )),
-          getTitleWiget(const Icon(Icons.data_thresholding_sharp), "特徵值", null),
+          ),
           divider(),
+          getTitleWiget("特徵值", null),
           Expanded(child: FeatureDisplay(features))
         ],
       ),
     );
   }
 
-  Widget getTitleWiget(Icon icon, String text, Widget? widget) {
-    return Container(
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Padding(
-              padding: const EdgeInsets.only(
-                left: 10,
-              ),
-              child: Row(
-                children: [
-                  icon,
-                  Padding(
-                    padding: EdgeInsets.only(left: 10),
-                    child: Text(
-                      text,
-                      style: TextStyle(fontSize: 20, color: Colors.white),
-                    ),
-                  )
-                ],
-              )),
-          widget == null ? const Text('') : widget
-        ],
-      ),
+  Widget getTitleWiget(String text, Widget? widget) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Padding(
+            padding: const EdgeInsets.only(
+              left: 5,
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.data_thresholding_sharp),
+                Padding(
+                  padding: const EdgeInsets.only(left: 10),
+                  child: Text(
+                    text,
+                    style: const TextStyle(fontSize: 20, color: Colors.white),
+                  ),
+                )
+              ],
+            )),
+        widget ?? const Text('')
+      ],
     );
   }
 
@@ -162,19 +157,25 @@ class _HomePageState extends State<HomePage> {
     int lenOfTimeDomainData = data.accData_X.length;
     int lenOfFFTData = data.fftData_X.length;
 
-    List<double> xListOfTDData = List.generate(512, (int index) => (index).toDouble(), growable: true);
+    List<double> xListOfTDData =
+        List.generate(512, (int index) => (index).toDouble(), growable: true);
 
     double freqStep = 4000 / 256; //256 > 4000
 
-    List<double> freqListOfFFTData = List.generate(256, (int index) => (index * freqStep).toDouble(), growable: true);
+    List<double> freqListOfFFTData = List.generate(
+        256, (int index) => (index * freqStep).toDouble(),
+        growable: true);
 
     SimpleData xAxisTDData = SimpleData('X', xListOfTDData, data.accData_X);
     SimpleData yAxisTDData = SimpleData('Y', xListOfTDData, data.accData_Y);
     SimpleData zAxisTDData = SimpleData('Z', xListOfTDData, data.accData_Z);
 
-    SimpleData xAxisFFTData = SimpleData('X', freqListOfFFTData, data.fftData_X);
-    SimpleData yAxisFFTData = SimpleData('Y', freqListOfFFTData, data.fftData_Y);
-    SimpleData zAxisFFTData = SimpleData('Z', freqListOfFFTData, data.fftData_Z);
+    SimpleData xAxisFFTData =
+        SimpleData('X', freqListOfFFTData, data.fftData_X);
+    SimpleData yAxisFFTData =
+        SimpleData('Y', freqListOfFFTData, data.fftData_Y);
+    SimpleData zAxisFFTData =
+        SimpleData('Z', freqListOfFFTData, data.fftData_Z);
 
     accData = [xAxisTDData, yAxisTDData, zAxisTDData];
     fFtData = [xAxisFFTData, yAxisFFTData, zAxisFFTData];
@@ -213,7 +214,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   var zoomOutPage;
-  void zoomOutChart(data, {required String title, required String xtitle, required String ytitle}) {
+  void zoomOutChart(data,
+      {required String title, required String xtitle, required String ytitle}) {
     zoomOutPage = ZoomOutPage(
       data: data,
       title: title,

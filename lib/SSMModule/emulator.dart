@@ -24,7 +24,6 @@ void start(String ip, int port) {
               client.add(data.sublist(1, 9));
             }
             if (String.fromCharCodes(data).contains('READVALUE')) {
-              print('模擬器 song' + client.port.toString());
               var data = await fakeData();
               client.add(data);
             }

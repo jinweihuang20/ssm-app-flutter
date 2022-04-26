@@ -29,7 +29,8 @@ class _MainPageState extends State<MainPage> {
   List<PageState> pageStates = [];
   bool isSSMConnected = false;
   final _pageController = PageController(initialPage: 0);
-  final Color bottomNavSelectedIconColor = const Color.fromARGB(255, 65, 128, 211);
+  final Color bottomNavSelectedIconColor =
+      const Color.fromARGB(255, 65, 128, 211);
   var appBarBackgroundColor = Colors.blue;
   Color bottomNavNotSelectedIconColor = Colors.white;
   bool _homePagePauseFlag = false;
@@ -37,9 +38,16 @@ class _MainPageState extends State<MainPage> {
     return ButtonBar(
       alignment: MainAxisAlignment.center,
       children: [
-        IconButton(onPressed: () => {homePage.state.saveAccDataToMachine()}, icon: Icon(Icons.save)),
-        IconButton(padding: EdgeInsets.all(1), onPressed: _homePagePauseFlag ? null : _homePagePause, icon: const Icon(Icons.pause_circle_outline)),
-        IconButton(onPressed: !_homePagePauseFlag ? null : _homePageResume, icon: const Icon(Icons.play_arrow))
+        IconButton(
+            onPressed: () => {homePage.state.saveAccDataToMachine()},
+            icon: const Icon(Icons.save)),
+        IconButton(
+            padding: const EdgeInsets.all(1),
+            onPressed: _homePagePauseFlag ? null : _homePagePause,
+            icon: const Icon(Icons.pause_circle_outline)),
+        IconButton(
+            onPressed: !_homePagePauseFlag ? null : _homePageResume,
+            icon: const Icon(Icons.play_arrow))
       ],
     );
   }
@@ -76,7 +84,9 @@ class _MainPageState extends State<MainPage> {
         title: '連線',
         icon: const Icon(Icons.settings_ethernet),
         iconColor: bottomNavNotSelectedIconColor);
-    deviceConnPageState.appBarWidget = IconButton(onPressed: opQRCodeSacnner, icon: const Icon(Icons.qr_code_scanner_sharp));
+    deviceConnPageState.appBarWidget = IconButton(
+        onPressed: opQRCodeSacnner,
+        icon: const Icon(Icons.qr_code_scanner_sharp));
     ls.add(deviceConnPageState);
 
     var quertPage = PageState(
@@ -115,20 +125,22 @@ class _MainPageState extends State<MainPage> {
           Badge(
             showBadge: badgeState.showBadge,
             child: IconButton(
+                constraints: const BoxConstraints(maxHeight: 20),
+                padding: const EdgeInsets.all(1),
                 onPressed: () {
-                  _pageController.jumpToPage(index);
-                  setState(() {
-                    title = state.title;
-                    _renderUI(index);
-                  });
+                  action(index, state.title);
                 },
                 icon: icon,
                 color: iconColor,
                 iconSize: bottomNaveIconSize),
           ),
-          Text(
-            title,
-            style: TextStyle(color: iconColor, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 2),
+          TextButton(
+            child: Text(title),
+            style: ElevatedButton.styleFrom(
+                onSurface: Colors.transparent,
+                onPrimary: iconColor,
+                enableFeedback: false),
+            onPressed: () => action(index, state.title),
           )
         ],
       );
@@ -169,7 +181,8 @@ class _MainPageState extends State<MainPage> {
   ///取得要餵給 PageView的 Widget列表
   List<Widget> _getPageWidgets() {
     List<Widget> ls = [];
-    List.generate(pageStates.length, (index) => {ls.add(pageStates[index].pageWidget)});
+    List.generate(
+        pageStates.length, (index) => {ls.add(pageStates[index].pageWidget)});
     return ls;
   }
 
@@ -180,7 +193,8 @@ class _MainPageState extends State<MainPage> {
     User.loadSetting().then((value) async {
       await tryConnectToSSM(value);
       setState(() {
-        bottomNavNotSelectedIconColor = User.setting.appTheme == 'dark' ? Colors.white : Colors.black54;
+        bottomNavNotSelectedIconColor =
+            User.setting.appTheme == 'dark' ? Colors.white : Colors.black54;
 
         pageStates = getPageStates();
         _renderUI(0);
@@ -192,6 +206,7 @@ class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         actions: [appBarRightWidget],
         title: Row(
@@ -263,5 +278,13 @@ class _MainPageState extends State<MainPage> {
 
   void opQRCodeSacnner() {
     (pageStates[1].pageWidget as DeviceConnectPage).state.openQRCodeScanner();
+  }
+
+  void action(int index, String title) {
+    _pageController.jumpToPage(index);
+    setState(() {
+      title = title;
+      _renderUI(index);
+    });
   }
 }

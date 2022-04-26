@@ -9,21 +9,36 @@ class FeatureDisplay extends StatefulWidget {
 }
 
 class _FeatureDisplayState extends State<FeatureDisplay> {
-  TextStyle textStyle = const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, letterSpacing: 3);
+  TextStyle textStyle = const TextStyle(
+      fontSize: 17, fontWeight: FontWeight.bold, letterSpacing: 3);
   TextStyle titleTextStyle = const TextStyle(
     fontSize: 12,
   );
   @override
   Widget build(BuildContext context) {
+    widget.featuresData ??= Features();
     return Column(
       children: [
-        FeatureCard(featureName: 'OA', xData: widget.featuresData.oa_x, yData: widget.featuresData.oa_y, zData: widget.featuresData.oa_z),
-        divider(),
-        FeatureCard(featureName: 'ACC(P2P)', xData: widget.featuresData.acc_x_pp, yData: widget.featuresData.acc_y_pp, zData: widget.featuresData.acc_z_pp),
-        divider(),
-        FeatureCard(featureName: 'VEL(RMS)', xData: widget.featuresData.vel_x_rms, yData: widget.featuresData.vel_y_rms, zData: widget.featuresData.vel_z_rms),
-        divider(),
-        FeatureCard(featureName: 'DIS(P2P)', xData: widget.featuresData.dis_x_pp, yData: widget.featuresData.dis_y_pp, zData: widget.featuresData.dis_z_pp),
+        FeatureCard(
+            featureName: 'OA',
+            xData: widget.featuresData.oa_x,
+            yData: widget.featuresData.oa_y,
+            zData: widget.featuresData.oa_z),
+        FeatureCard(
+            featureName: 'ACC(P2P)',
+            xData: widget.featuresData.acc_x_pp,
+            yData: widget.featuresData.acc_y_pp,
+            zData: widget.featuresData.acc_z_pp),
+        FeatureCard(
+            featureName: 'VEL(RMS)',
+            xData: widget.featuresData.vel_x_rms,
+            yData: widget.featuresData.vel_y_rms,
+            zData: widget.featuresData.vel_z_rms),
+        FeatureCard(
+            featureName: 'DIS(P2P)',
+            xData: widget.featuresData.dis_x_pp,
+            yData: widget.featuresData.dis_y_pp,
+            zData: widget.featuresData.dis_z_pp),
       ],
     );
   }
