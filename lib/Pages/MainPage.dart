@@ -73,7 +73,7 @@ class _MainPageState extends State<MainPage> {
           ssmModuleOnConnect: connectedFromDeviceConnecPage,
           connected: isSSMConnected,
         ),
-        title: '連線',
+        title: '模組連線/設定',
         icon: const Icon(Icons.settings_ethernet),
         iconColor: bottomNavNotSelectedIconColor);
     deviceConnPageState.appBarWidget = IconButton(onPressed: opQRCodeSacnner, icon: const Icon(Icons.qr_code_scanner_sharp));
@@ -93,6 +93,7 @@ class _MainPageState extends State<MainPage> {
         title: '系統設定',
         icon: const Icon(Icons.settings),
         iconColor: bottomNavNotSelectedIconColor));
+
     return ls;
   }
 
@@ -133,9 +134,9 @@ class _MainPageState extends State<MainPage> {
 
     return <Widget>[
       Padding(
-          padding: const EdgeInsets.all(10),
+          padding: const EdgeInsets.all(1),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: ls,
           ))
     ];
@@ -150,8 +151,9 @@ class _MainPageState extends State<MainPage> {
       PageState pageState = pageStates[activeIndex];
       pageState.iconColor = bottomNavSelectedIconColor;
       appBarRightWidget = pageState.appBarWidget;
-
-      title = pageState.title + "(${User.setting.ssmIp})";
+      User.loadSetting().then((value) {
+        title = pageState.title + "(${value.ssmIp})";
+      });
 
       ///
       if (activeIndex == 2) {

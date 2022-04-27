@@ -99,21 +99,17 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.black,
+    return SizedBox.expand(
       child: Column(
         children: [
           Expanded(
-            flex: 1,
             child: accChart,
           ),
           divider(),
           Expanded(
-            flex: 1,
             child: fftChart,
           ),
           divider(),
-          getTitleWiget("特徵值", null),
           Expanded(child: FeatureDisplay(features))
         ],
       ),

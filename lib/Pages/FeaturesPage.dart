@@ -16,8 +16,7 @@ class FeaturesPage extends StatefulWidget {
   State<FeaturesPage> createState() => state;
 }
 
-class _FeaturesPageState extends State<FeaturesPage>
-    with AutomaticKeepAliveClientMixin {
+class _FeaturesPageState extends State<FeaturesPage> with AutomaticKeepAliveClientMixin {
   final xAxisColor = charts.MaterialPalette.blue.shadeDefault;
   final yAxisColor = charts.MaterialPalette.red.shadeDefault;
   final zAxisColor = charts.MaterialPalette.yellow.shadeDefault;
@@ -29,8 +28,7 @@ class _FeaturesPageState extends State<FeaturesPage>
   final Color _activeBtnColor = const Color.fromARGB(255, 21, 64, 93);
 
   Map<String, Color> buttonColorMap = <String, Color>{
-    SHOW_FE_NAME.oa.name.toString():
-        const Color.fromARGB(255, 21, 64, 93),
+    SHOW_FE_NAME.oa.name.toString(): const Color.fromARGB(255, 21, 64, 93),
     SHOW_FE_NAME.acc.name.toString(): Colors.grey,
     SHOW_FE_NAME.vel.name.toString(): Colors.grey,
     SHOW_FE_NAME.dis.name.toString(): Colors.grey
@@ -84,6 +82,10 @@ class _FeaturesPageState extends State<FeaturesPage>
         data.unit = 'mm/s';
         data.timeData = velData;
 
+        data.isoResultX = getISOResult(data.xValue, _isoSelect);
+        data.isoResultY = getISOResult(data.yValue, _isoSelect);
+        data.isoResultZ = getISOResult(data.zValue, _isoSelect);
+
         break;
 
       case SHOW_FE_NAME.dis:
@@ -108,8 +110,7 @@ class _FeaturesPageState extends State<FeaturesPage>
     } catch (e) {}
   }
 
-  final PageController _chartPageViewController =
-      PageController(initialPage: 0);
+  final PageController _chartPageViewController = PageController(initialPage: 0);
 
   dynamic _isoSelect = 1;
 
@@ -162,26 +163,9 @@ class _FeaturesPageState extends State<FeaturesPage>
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            Expanded(
-                child: axisValueWiget(
-                    title: "X",
-                    value: showingData.xValue,
-                    unit: showingData.unit,
-                    backgroundColor:
-                        const Color.fromARGB(255, 37, 129, 204))),
-            Expanded(
-                child: axisValueWiget(
-                    title: "Y",
-                    value: showingData.yValue,
-                    unit: showingData.unit,
-                    backgroundColor: Colors.red)),
-            Expanded(
-                child: axisValueWiget(
-                    title: "Z",
-                    value: showingData.zValue,
-                    unit: showingData.unit,
-                    backgroundColor:
-                        const Color.fromARGB(255, 230, 215, 81)))
+            Expanded(child: axisValueWiget(title: "X", value: showingData.xValue, unit: showingData.unit, isoResult: showingData.isoResultX)),
+            Expanded(child: axisValueWiget(title: "Y", value: showingData.yValue, unit: showingData.unit, isoResult: showingData.isoResultY)),
+            Expanded(child: axisValueWiget(title: "Z", value: showingData.zValue, unit: showingData.unit, isoResult: showingData.isoResultZ))
           ],
         ),
         // FeatureDisplay(features),
@@ -205,21 +189,17 @@ class _FeaturesPageState extends State<FeaturesPage>
               Column(
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       const Icon(
                         Icons.info_sharp,
                         size: 16,
                       ),
-                      const Padding(
-                          padding: EdgeInsets.only(left: 10),
-                          child: Text('ISO 規範 : ')),
+                      const Padding(padding: EdgeInsets.only(left: 10), child: Text('ISO 規範 : ')),
                       SizedBox(
                           width: 160,
                           child: DropdownButton(
                               value: _isoSelect,
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.bold),
+                              style: const TextStyle(fontWeight: FontWeight.bold),
                               isExpanded: true,
                               alignment: Alignment.center,
                               items: _isoDropDownItems(),
@@ -231,8 +211,7 @@ class _FeaturesPageState extends State<FeaturesPage>
                     title: _eShowFEName.name.toUpperCase(),
                     dataSetList: showingData.timeData,
                     yAxisTitle: showingData.unit,
-                    chartISOProperty: ChartISOProperty(
-                        showIso: true, isoType: _isoSelect),
+                    chartISOProperty: ChartISOProperty(showIso: true, isoType: _isoSelect),
                   ))
                 ],
               ),
@@ -265,10 +244,7 @@ class _FeaturesPageState extends State<FeaturesPage>
     ];
   }
 
-  Widget iconButton(
-      {required String text,
-      required Color color,
-      required Function() onPressed}) {
+  Widget iconButton({required String text, required Color color, required Function() onPressed}) {
     return Padding(
         padding: const EdgeInsets.all(4),
         child: ElevatedButton(
@@ -277,64 +253,78 @@ class _FeaturesPageState extends State<FeaturesPage>
             text,
             style: const TextStyle(fontWeight: FontWeight.w800),
           ),
-          style: ElevatedButton.styleFrom(
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30)),
-              primary: color),
+          style: ElevatedButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)), primary: color),
         ));
   }
 
-  Widget axisValueWiget(
-      {required String title,
-      required dynamic value,
-      required String unit,
-      Color backgroundColor = Colors.blue}) {
+  Widget axisValueWiget({required String title, required dynamic value, required String unit, Color backgroundColor = Colors.blue, String isoResult = "GOOD"}) {
+    var isoWidget = Padding(
+        padding: const EdgeInsets.only(bottom: 10),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(
+              height: 20,
+              child: ElevatedButton(
+                onPressed: () {},
+                child: Text(isoResult),
+                style: ElevatedButton.styleFrom(
+                    primary: getColorOfISOResult(isoResult),
+                    textStyle: const TextStyle(fontSize: 12),
+                    fixedSize: const Size(120, 12),
+                    padding: const EdgeInsets.all(1),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30))),
+              ),
+            )
+          ],
+        ));
+
+    var contentChildren = [
+      Container(
+        padding: const EdgeInsets.all(2),
+        color: backgroundColor,
+        width: double.infinity,
+        child: Center(
+          child: Text(
+            title,
+            style: const TextStyle(fontSize: 17),
+          ),
+        ),
+      ),
+      Expanded(
+          child: Row(
+        children: [
+          Expanded(
+            child: Center(child: Text((value as double).toStringAsFixed(2), style: const TextStyle(fontSize: 27, letterSpacing: 2, fontWeight: FontWeight.bold))),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(right: 6, top: 9),
+            child: Text(unit, style: const TextStyle(fontSize: 15, fontStyle: FontStyle.italic)),
+          )
+        ],
+      )),
+    ];
+
+    if (_eShowFEName == SHOW_FE_NAME.vel) {
+      contentChildren.addAll([
+        const Divider(
+          thickness: 1,
+        ),
+        isoWidget
+      ]);
+    }
+
     return Padding(
         padding: const EdgeInsets.all(3),
         child: SizedBox(
-          height: 70,
-          width: 100,
+          height: 105,
           child: Container(
             decoration: const BoxDecoration(
               color: Colors.black,
               borderRadius: BorderRadius.all(Radius.circular(5)),
             ),
             child: Column(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(2),
-                  color: backgroundColor,
-                  width: double.infinity,
-                  child: Center(
-                    child: Text(
-                      title,
-                      style: const TextStyle(fontSize: 17),
-                    ),
-                  ),
-                ),
-                Expanded(
-                    child: Row(
-                  children: [
-                    Expanded(
-                      child: Center(
-                          child: Text(
-                              (value as double).toStringAsFixed(2),
-                              style: const TextStyle(
-                                  fontSize: 27,
-                                  letterSpacing: 2,
-                                  fontWeight: FontWeight.bold))),
-                    ),
-                    Padding(
-                      padding:
-                          const EdgeInsets.only(right: 6, top: 9),
-                      child: Text(unit,
-                          style: const TextStyle(
-                              fontSize: 15,
-                              fontStyle: FontStyle.italic)),
-                    )
-                  ],
-                ))
-              ],
+              children: contentChildren,
             ),
           ),
         ));
@@ -396,34 +386,46 @@ class _FeaturesPageState extends State<FeaturesPage>
 
   void initializeDataState() {
     oaData = [
-      TimeData(
-          name: 'X', timeList: [], values: [], color: xAxisColor),
-      TimeData(
-          name: 'Y', timeList: [], values: [], color: yAxisColor),
+      TimeData(name: 'X', timeList: [], values: [], color: xAxisColor),
+      TimeData(name: 'Y', timeList: [], values: [], color: yAxisColor),
       TimeData(name: 'Z', timeList: [], values: [], color: zAxisColor)
     ];
     accData = [
-      TimeData(
-          name: 'X', timeList: [], values: [], color: xAxisColor),
-      TimeData(
-          name: 'Y', timeList: [], values: [], color: yAxisColor),
+      TimeData(name: 'X', timeList: [], values: [], color: xAxisColor),
+      TimeData(name: 'Y', timeList: [], values: [], color: yAxisColor),
       TimeData(name: 'Z', timeList: [], values: [], color: zAxisColor)
     ];
     velData = [
-      TimeData(
-          name: 'X', timeList: [], values: [], color: xAxisColor),
-      TimeData(
-          name: 'Y', timeList: [], values: [], color: yAxisColor),
+      TimeData(name: 'X', timeList: [], values: [], color: xAxisColor),
+      TimeData(name: 'Y', timeList: [], values: [], color: yAxisColor),
       TimeData(name: 'Z', timeList: [], values: [], color: zAxisColor)
     ];
     disData = [
-      TimeData(
-          name: 'X', timeList: [], values: [], color: xAxisColor),
-      TimeData(
-          name: 'Y', timeList: [], values: [], color: yAxisColor),
+      TimeData(name: 'X', timeList: [], values: [], color: xAxisColor),
+      TimeData(name: 'Y', timeList: [], values: [], color: yAxisColor),
       TimeData(name: 'Z', timeList: [], values: [], color: zAxisColor)
     ];
   }
+
+  getColorOfISOResult(String isoResult) {
+    switch (isoResult) {
+      case 'GOOD':
+        return Colors.green;
+      case 'Staisfactory':
+        return Colors.yellow.shade600;
+      case 'Unstaisfactory':
+        return Colors.orange.shade600;
+      case 'Unacceptable':
+        return Colors.red;
+      default:
+    }
+  }
+}
+
+String getISOResult(double vel, isoSelect) {
+  ISO10816SPEC spec = classSepcMap[isoSelect]!;
+
+  return spec.getResult(vel);
 }
 
 class ShowingData {
@@ -431,5 +433,9 @@ class ShowingData {
   double xValue = 0;
   double yValue = 0;
   double zValue = 0;
+  String isoResultX = "GD";
+  String isoResultY = "GD";
+  String isoResultZ = "GD";
+
   List<TimeData> timeData = [];
 }

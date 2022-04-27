@@ -6,8 +6,7 @@ class MeasureRangeDropDownBtn extends StatefulWidget {
   MeasureRangeDropDownBtn({required this.onRangeSelected});
   final Function(int) onRangeSelected;
   @override
-  State<StatefulWidget> createState() =>
-      _MeasureRangeDropDownBtn(this.onRangeSelected);
+  State<StatefulWidget> createState() => _MeasureRangeDropDownBtn(this.onRangeSelected);
 }
 
 class _MeasureRangeDropDownBtn extends State<MeasureRangeDropDownBtn> {
@@ -17,7 +16,6 @@ class _MeasureRangeDropDownBtn extends State<MeasureRangeDropDownBtn> {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Text('量測範圍:'),
         DropdownButton(
           items: _ranges,
           onChanged: rangeOnChanageHandle,
