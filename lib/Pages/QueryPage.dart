@@ -59,69 +59,71 @@ class _QueryPage extends State<QueryPage>
       query();
     }
 
-    return SingleChildScrollView(
-      child: Column(
-        mainAxisSize: MainAxisSize.max,
-        children: [
-          const Padding(padding: EdgeInsets.only(top: 20)),
-          Row(
-            children: [
-              Expanded(
-                  child: iconButton(
-                      text: '過去5分鐘',
-                      onPressed: () {
-                        queryData(5);
-                      },
-                      color: buttonColorMap[5]!)),
-              Expanded(
-                  child: iconButton(
-                      text: '過去10分鐘',
-                      onPressed: () {
-                        queryData(10);
-                      },
-                      color: buttonColorMap[10]!)),
-              Expanded(
-                  child: iconButton(
-                      text: '過去30分鐘',
-                      onPressed: () {
-                        queryData(30);
-                      },
-                      color: buttonColorMap[30]!))
-            ],
-          ),
-          const Divider(),
-          SizedBox(
-            width: double.infinity,
-            height: 200,
-            child: TimeLineChart(
-              title: "加速度",
-              yAxisTitle: "G",
-              dataSetList: accData,
-            ),
-          ),
-          const Divider(),
-          SizedBox(
-            width: double.infinity,
-            height: 200,
-            child: TimeLineChart(
-              title: "速度",
-              yAxisTitle: "mm/s",
-              dataSetList: velData,
-              chartISOProperty:
-                  ChartISOProperty(showIso: true, isoType: 1),
-            ),
-          ),
-          const Divider(),
-          SizedBox(
-            width: double.infinity,
-            height: 200,
-            child: TimeLineChart(
-              title: "位移",
-              yAxisTitle: "um",
-              dataSetList: disData,
-            ),
-          ),
-        ],
+    return Column(
+      mainAxisSize: MainAxisSize.max,
+      children: [
+        const Padding(padding: EdgeInsets.only(top: 20)),
+        Row(
+          children: [
+            Expanded(
+                child: iconButton(
+                    text: '過去5分鐘',
+                    onPressed: () {
+                      queryData(5);
+                    },
+                    color: buttonColorMap[5]!)),
+            Expanded(
+                child: iconButton(
+                    text: '過去10分鐘',
+                    onPressed: () {
+                      queryData(10);
+                    },
+                    color: buttonColorMap[10]!)),
+            Expanded(
+                child: iconButton(
+                    text: '過去30分鐘',
+                    onPressed: () {
+                      queryData(30);
+                    },
+                    color: buttonColorMap[30]!))
+          ],
+        ),
+        const Divider(),
+        Expanded(
+            child: chartWidget(
+          title: "加速度",
+          yAxisTitle: "G",
+          data: accData,
+        )),
+        const Divider(),
+        Expanded(
+            child: chartWidget(
+          title: "速度",
+          yAxisTitle: "mm/s",
+          data: velData,
+        )),
+        const Divider(),
+        Expanded(
+            child: chartWidget(
+          title: "位移",
+          yAxisTitle: "um",
+          data: disData,
+        )),
+      ],
+    );
+  }
+
+  Widget chartWidget(
+      {required String title,
+      required String yAxisTitle,
+      required List<TimeData> data}) {
+    return SizedBox(
+      width: double.infinity,
+      height: 200,
+      child: TimeLineChart(
+        title: title,
+        yAxisTitle: yAxisTitle,
+        dataSetList: data,
       ),
     );
   }

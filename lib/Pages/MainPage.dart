@@ -167,11 +167,13 @@ class _MainPageState extends State<MainPage> {
       PageState pageState = pageStates[activeIndex];
       pageState.iconColor = bottomNavSelectedIconColor;
       appBarRightWidget = pageState.appBarWidget;
-      title = pageState.title;
+
+      title = pageState.title + "(${User.setting.ssmIp})";
 
       ///
       if (activeIndex == 2) {
-        appBarBackgroundColor = isSSMConnected ? Colors.blue : Colors.red;
+        appBarBackgroundColor =
+            isSSMConnected ? Colors.blue : Colors.red;
       } else {
         appBarBackgroundColor = Colors.blue;
       }
@@ -181,8 +183,8 @@ class _MainPageState extends State<MainPage> {
   ///取得要餵給 PageView的 Widget列表
   List<Widget> _getPageWidgets() {
     List<Widget> ls = [];
-    List.generate(
-        pageStates.length, (index) => {ls.add(pageStates[index].pageWidget)});
+    List.generate(pageStates.length,
+        (index) => {ls.add(pageStates[index].pageWidget)});
     return ls;
   }
 
@@ -194,7 +196,9 @@ class _MainPageState extends State<MainPage> {
       await tryConnectToSSM(value);
       setState(() {
         bottomNavNotSelectedIconColor =
-            User.setting.appTheme == 'dark' ? Colors.white : Colors.black54;
+            User.setting.appTheme == 'dark'
+                ? Colors.white
+                : Colors.black54;
 
         pageStates = getPageStates();
         _renderUI(0);
@@ -277,7 +281,9 @@ class _MainPageState extends State<MainPage> {
   }
 
   void opQRCodeSacnner() {
-    (pageStates[1].pageWidget as DeviceConnectPage).state.openQRCodeScanner();
+    (pageStates[1].pageWidget as DeviceConnectPage)
+        .state
+        .openQRCodeScanner();
   }
 
   void action(int index, String title) {
