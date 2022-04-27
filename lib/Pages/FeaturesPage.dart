@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:ssmflutter/Chartslb/ISOPlugin.dart';
 import 'package:ssmflutter/Chartslb/TimeLineChart.dart';
 import '../SSMModule/FeatureDisplay.dart';
+
+import 'package:charts_flutter/flutter.dart' as charts;
+
 import '../SSMModule/module.dart';
 
 enum SHOW_FE_NAME { oa, acc, vel, dis }
@@ -12,28 +16,37 @@ class FeaturesPage extends StatefulWidget {
   State<FeaturesPage> createState() => state;
 }
 
-class _FeaturesPageState extends State<FeaturesPage> with AutomaticKeepAliveClientMixin {
+class _FeaturesPageState extends State<FeaturesPage>
+    with AutomaticKeepAliveClientMixin {
+  final xAxisColor = charts.MaterialPalette.blue.shadeDefault;
+  final yAxisColor = charts.MaterialPalette.red.shadeDefault;
+  final zAxisColor = charts.MaterialPalette.yellow.shadeDefault;
+
   Module _ssmMoudle = Module(ip: 'ip', port: -1);
   Features features = Features();
-  List<TimeData> oaData = [TimeData(name: 'X', timeList: [], values: []), TimeData(name: 'Y', timeList: [], values: []), TimeData(name: 'Z', timeList: [], values: [])];
-  List<TimeData> accData = [TimeData(name: 'X', timeList: [], values: []), TimeData(name: 'Y', timeList: [], values: []), TimeData(name: 'Z', timeList: [], values: [])];
-  List<TimeData> velData = [TimeData(name: 'X', timeList: [], values: []), TimeData(name: 'Y', timeList: [], values: []), TimeData(name: 'Z', timeList: [], values: [])];
-  List<TimeData> disData = [TimeData(name: 'X', timeList: [], values: []), TimeData(name: 'Y', timeList: [], values: []), TimeData(name: 'Z', timeList: [], values: [])];
+
   final Color _noActiveBtnColor = Colors.grey;
   final Color _activeBtnColor = const Color.fromARGB(255, 21, 64, 93);
 
   Map<String, Color> buttonColorMap = <String, Color>{
-    SHOW_FE_NAME.oa.name.toString(): const Color.fromARGB(255, 21, 64, 93),
+    SHOW_FE_NAME.oa.name.toString():
+        const Color.fromARGB(255, 21, 64, 93),
     SHOW_FE_NAME.acc.name.toString(): Colors.grey,
     SHOW_FE_NAME.vel.name.toString(): Colors.grey,
     SHOW_FE_NAME.dis.name.toString(): Colors.grey
   };
 
   SHOW_FE_NAME _eShowFEName = SHOW_FE_NAME.oa;
+  List<TimeData> oaData = [];
+  List<TimeData> accData = [];
+  List<TimeData> velData = [];
+  List<TimeData> disData = [];
+  bool _showISO = false;
   set eShowFEName(SHOW_FE_NAME value) {
     _eShowFEName = value;
 
     setState(() {
+      _chartPageViewController.jumpToPage(_eShowFEName.index);
       buttonColorMap = <String, Color>{
         SHOW_FE_NAME.oa.name.toString(): _noActiveBtnColor,
         SHOW_FE_NAME.acc.name.toString(): _noActiveBtnColor,
@@ -70,6 +83,7 @@ class _FeaturesPageState extends State<FeaturesPage> with AutomaticKeepAliveClie
         data.zValue = features.vel_z_rms;
         data.unit = 'mm/s';
         data.timeData = velData;
+
         break;
 
       case SHOW_FE_NAME.dis:
@@ -92,6 +106,17 @@ class _FeaturesPageState extends State<FeaturesPage> with AutomaticKeepAliveClie
         _featuresDataOnChangeHandle(evtArg.features);
       });
     } catch (e) {}
+  }
+
+  final PageController _chartPageViewController =
+      PageController(initialPage: 0);
+
+  dynamic _isoSelect = 1;
+
+  @override
+  void initState() {
+    initializeDataState();
+    super.initState();
   }
 
   @override
@@ -137,26 +162,113 @@ class _FeaturesPageState extends State<FeaturesPage> with AutomaticKeepAliveClie
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            Expanded(child: axisValueWiget(title: "X", value: showingData.xValue, unit: showingData.unit, backgroundColor: const Color.fromARGB(255, 37, 129, 204))),
-            Expanded(child: axisValueWiget(title: "Y", value: showingData.yValue, unit: showingData.unit, backgroundColor: Colors.red)),
-            Expanded(child: axisValueWiget(title: "Z", value: showingData.zValue, unit: showingData.unit, backgroundColor: const Color.fromARGB(255, 230, 215, 81)))
+            Expanded(
+                child: axisValueWiget(
+                    title: "X",
+                    value: showingData.xValue,
+                    unit: showingData.unit,
+                    backgroundColor:
+                        const Color.fromARGB(255, 37, 129, 204))),
+            Expanded(
+                child: axisValueWiget(
+                    title: "Y",
+                    value: showingData.yValue,
+                    unit: showingData.unit,
+                    backgroundColor: Colors.red)),
+            Expanded(
+                child: axisValueWiget(
+                    title: "Z",
+                    value: showingData.zValue,
+                    unit: showingData.unit,
+                    backgroundColor:
+                        const Color.fromARGB(255, 230, 215, 81)))
           ],
         ),
         // FeatureDisplay(features),
         Expanded(
             child: Container(
           color: Colors.black,
-          child: TimeLineChart(
-            title: _eShowFEName.name.toUpperCase(),
-            dataSetList: showingData.timeData,
-            yAxisTitle: showingData.unit,
+          child: PageView(
+            controller: _chartPageViewController,
+            physics: const NeverScrollableScrollPhysics(),
+            children: [
+              TimeLineChart(
+                title: _eShowFEName.name.toUpperCase(),
+                dataSetList: showingData.timeData,
+                yAxisTitle: showingData.unit,
+              ),
+              TimeLineChart(
+                title: _eShowFEName.name.toUpperCase(),
+                dataSetList: showingData.timeData,
+                yAxisTitle: showingData.unit,
+              ),
+              Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      const Icon(
+                        Icons.info_sharp,
+                        size: 16,
+                      ),
+                      const Padding(
+                          padding: EdgeInsets.only(left: 10),
+                          child: Text('ISO 規範 : ')),
+                      SizedBox(
+                          width: 160,
+                          child: DropdownButton(
+                              value: _isoSelect,
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.bold),
+                              isExpanded: true,
+                              alignment: Alignment.center,
+                              items: _isoDropDownItems(),
+                              onChanged: _isoSelectValueHandle))
+                    ],
+                  ),
+                  Expanded(
+                      child: TimeLineChart(
+                    title: _eShowFEName.name.toUpperCase(),
+                    dataSetList: showingData.timeData,
+                    yAxisTitle: showingData.unit,
+                    chartISOProperty: ChartISOProperty(
+                        showIso: true, isoType: _isoSelect),
+                  ))
+                ],
+              ),
+              TimeLineChart(
+                title: _eShowFEName.name.toUpperCase(),
+                dataSetList: showingData.timeData,
+                yAxisTitle: showingData.unit,
+              ),
+            ],
           ),
         ))
       ],
     );
   }
 
-  Widget iconButton({required String text, required Color color, required Function() onPressed}) {
+  void _isoSelectValueHandle(value) {
+    setState(() {
+      _isoSelect = value;
+    });
+  }
+
+  List<DropdownMenuItem> _isoDropDownItems() {
+    return const <DropdownMenuItem>[
+      DropdownMenuItem(
+        child: Text('ISO-10816-1 Class 1'),
+        value: 1,
+      ),
+      DropdownMenuItem(child: Text('ISO-10816-1 Class 2'), value: 2),
+      DropdownMenuItem(child: Text('ISO-10816-1 Class 3'), value: 3)
+    ];
+  }
+
+  Widget iconButton(
+      {required String text,
+      required Color color,
+      required Function() onPressed}) {
     return Padding(
         padding: const EdgeInsets.all(4),
         child: ElevatedButton(
@@ -165,11 +277,18 @@ class _FeaturesPageState extends State<FeaturesPage> with AutomaticKeepAliveClie
             text,
             style: const TextStyle(fontWeight: FontWeight.w800),
           ),
-          style: ElevatedButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)), primary: color),
+          style: ElevatedButton.styleFrom(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30)),
+              primary: color),
         ));
   }
 
-  Widget axisValueWiget({required String title, required dynamic value, required String unit, Color backgroundColor = Colors.blue}) {
+  Widget axisValueWiget(
+      {required String title,
+      required dynamic value,
+      required String unit,
+      Color backgroundColor = Colors.blue}) {
     return Padding(
         padding: const EdgeInsets.all(3),
         child: SizedBox(
@@ -197,12 +316,21 @@ class _FeaturesPageState extends State<FeaturesPage> with AutomaticKeepAliveClie
                     child: Row(
                   children: [
                     Expanded(
-                      child:
-                          Center(child: Text((value as double).toStringAsFixed(2), style: const TextStyle(fontSize: 27, letterSpacing: 2, fontWeight: FontWeight.bold))),
+                      child: Center(
+                          child: Text(
+                              (value as double).toStringAsFixed(2),
+                              style: const TextStyle(
+                                  fontSize: 27,
+                                  letterSpacing: 2,
+                                  fontWeight: FontWeight.bold))),
                     ),
                     Padding(
-                      padding: const EdgeInsets.only(right: 6, top: 9),
-                      child: Text(unit, style: const TextStyle(fontSize: 15, fontStyle: FontStyle.italic)),
+                      padding:
+                          const EdgeInsets.only(right: 6, top: 9),
+                      child: Text(unit,
+                          style: const TextStyle(
+                              fontSize: 15,
+                              fontStyle: FontStyle.italic)),
                     )
                   ],
                 ))
@@ -264,6 +392,37 @@ class _FeaturesPageState extends State<FeaturesPage> with AutomaticKeepAliveClie
     } catch (e) {
       print('features rev..$e');
     }
+  }
+
+  void initializeDataState() {
+    oaData = [
+      TimeData(
+          name: 'X', timeList: [], values: [], color: xAxisColor),
+      TimeData(
+          name: 'Y', timeList: [], values: [], color: yAxisColor),
+      TimeData(name: 'Z', timeList: [], values: [], color: zAxisColor)
+    ];
+    accData = [
+      TimeData(
+          name: 'X', timeList: [], values: [], color: xAxisColor),
+      TimeData(
+          name: 'Y', timeList: [], values: [], color: yAxisColor),
+      TimeData(name: 'Z', timeList: [], values: [], color: zAxisColor)
+    ];
+    velData = [
+      TimeData(
+          name: 'X', timeList: [], values: [], color: xAxisColor),
+      TimeData(
+          name: 'Y', timeList: [], values: [], color: yAxisColor),
+      TimeData(name: 'Z', timeList: [], values: [], color: zAxisColor)
+    ];
+    disData = [
+      TimeData(
+          name: 'X', timeList: [], values: [], color: xAxisColor),
+      TimeData(
+          name: 'Y', timeList: [], values: [], color: yAxisColor),
+      TimeData(name: 'Z', timeList: [], values: [], color: zAxisColor)
+    ];
   }
 }
 

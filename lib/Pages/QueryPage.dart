@@ -16,7 +16,8 @@ class QueryPage extends StatefulWidget {
   State<QueryPage> createState() => state;
 }
 
-class _QueryPage extends State<QueryPage> with AutomaticKeepAliveClientMixin {
+class _QueryPage extends State<QueryPage>
+    with AutomaticKeepAliveClientMixin {
   int _minQueryNow = 5;
 
   final Color _activeBtnColor = const Color.fromARGB(255, 21, 64, 93);
@@ -34,7 +35,8 @@ class _QueryPage extends State<QueryPage> with AutomaticKeepAliveClientMixin {
 
   @override
   Widget build(BuildContext context) {
-    var btnStyle = ButtonStyle(backgroundColor: MaterialStateProperty.resolveWith(
+    var btnStyle = ButtonStyle(
+        backgroundColor: MaterialStateProperty.resolveWith(
       (Set<MaterialState> states) {
         print(states);
         if (states.contains(MaterialState.pressed)) return Colors.red;
@@ -173,14 +175,24 @@ class _QueryPage extends State<QueryPage> with AutomaticKeepAliveClientMixin {
 
   Future<List<SensorData>> query() async {
     List<SensorData> outputLs = [];
-    List<Map<String, dynamic>> ls = await API.queryOutWithTimeInterval(startTime, endTime);
+    List<Map<String, dynamic>> ls =
+        await API.queryOutWithTimeInterval(startTime, endTime);
     int? len = ls.length;
 
     if (len != 0) {
       List.generate(len, (i) {
         var dp = ls[i];
-        SensorData data = SensorData(DateTime.parse(dp['time']), dp['acc_x_pp'], dp['acc_y_pp'], dp['acc_z_pp'], dp['vel_x_rms'], dp['vel_y_rms'], dp['vel_z_rms'],
-            dp['dis_x_pp'], dp['dis_y_pp'], dp['dis_z_pp']);
+        SensorData data = SensorData(
+            DateTime.parse(dp['time']),
+            dp['acc_x_pp'],
+            dp['acc_y_pp'],
+            dp['acc_z_pp'],
+            dp['vel_x_rms'],
+            dp['vel_y_rms'],
+            dp['vel_z_rms'],
+            dp['dis_x_pp'],
+            dp['dis_y_pp'],
+            dp['dis_z_pp']);
         outputLs.add(data);
       });
     }
@@ -198,17 +210,30 @@ class _QueryPage extends State<QueryPage> with AutomaticKeepAliveClientMixin {
 }
 
 List<List<TimeData>> getTimeDataList(sensorDataLs) {
-  TimeData acc_x = TimeData(name: 'ACC-x', timeList: [], values: []);
-  TimeData acc_y = TimeData(name: 'ACC-y', timeList: [], values: []);
-  TimeData acc_z = TimeData(name: 'ACC-z', timeList: [], values: []);
+  final xAxisColor = charts.MaterialPalette.blue.shadeDefault;
+  final yAxisColor = charts.MaterialPalette.red.shadeDefault;
+  final zAxisColor = charts.MaterialPalette.yellow.shadeDefault;
 
-  TimeData vel_x = TimeData(name: 'VEL-x', timeList: [], values: []);
-  TimeData vel_y = TimeData(name: 'VEL-y', timeList: [], values: []);
-  TimeData vel_z = TimeData(name: 'VEL-z', timeList: [], values: []);
+  TimeData acc_x = TimeData(
+      name: 'ACC-x', timeList: [], values: [], color: xAxisColor);
+  TimeData acc_y = TimeData(
+      name: 'ACC-y', timeList: [], values: [], color: yAxisColor);
+  TimeData acc_z = TimeData(
+      name: 'ACC-z', timeList: [], values: [], color: zAxisColor);
 
-  TimeData dis_x = TimeData(name: 'DIS-x', timeList: [], values: []);
-  TimeData dis_y = TimeData(name: 'DIS-y', timeList: [], values: []);
-  TimeData dis_z = TimeData(name: 'DIS-z', timeList: [], values: []);
+  TimeData vel_x = TimeData(
+      name: 'VEL-x', timeList: [], values: [], color: xAxisColor);
+  TimeData vel_y = TimeData(
+      name: 'VEL-y', timeList: [], values: [], color: yAxisColor);
+  TimeData vel_z = TimeData(
+      name: 'VEL-z', timeList: [], values: [], color: zAxisColor);
+
+  TimeData dis_x = TimeData(
+      name: 'DIS-x', timeList: [], values: [], color: xAxisColor);
+  TimeData dis_y = TimeData(
+      name: 'DIS-y', timeList: [], values: [], color: yAxisColor);
+  TimeData dis_z = TimeData(
+      name: 'DIS-z', timeList: [], values: [], color: zAxisColor);
 
   List.generate(sensorDataLs.length, (index) {
     DateTime time = sensorDataLs[index].time;

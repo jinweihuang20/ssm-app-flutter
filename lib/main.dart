@@ -4,8 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:ssmflutter/Pages/LandingPage.dart';
 import 'Pages/MainPage.dart';
 import 'SysSetting.dart';
+import 'package:wakelock/wakelock.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  Wakelock.enable();
   runApp(const MyApp());
 }
 
@@ -17,7 +20,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo -20220414',
-      theme: ThemeData(primarySwatch: Colors.blue, brightness: Brightness.dark),
+      theme: ThemeData(
+          primarySwatch: Colors.blue, brightness: Brightness.dark),
       themeMode: ThemeMode.dark,
       debugShowCheckedModeBanner: true,
       initialRoute: "/",
