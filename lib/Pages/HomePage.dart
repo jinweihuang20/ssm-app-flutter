@@ -6,6 +6,7 @@ import 'package:ssmflutter/Database/SensorData.dart';
 import 'package:ssmflutter/Pages/ZoomOutShowPage.dart';
 import 'package:ssmflutter/SSMModule/FeatureDisplay.dart';
 import 'package:ssmflutter/SSMModule/module.dart';
+import 'package:ssmflutter/SocialMediaShare/SocialMediaWidget.dart';
 import 'package:ssmflutter/Storage/FileSaveLocalHelper.dart';
 import '../Database/SqliteAPI.dart' as db;
 import '../SysSetting.dart';
@@ -91,28 +92,24 @@ class _HomePageState extends State<HomePage> {
     if (FileNameHelper.fileName == "") return;
     String fileName = FileNameHelper.fileName + ".csv";
     FileSaveHelper.saveRawAccData(fileName, accData).then((filePath) {
-      FileNameHelper.showSaveDoneDialog(context);
+      showSaveDoneDialog(context, filePath: fileName);
       print('Data save ok, Path:$filePath');
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.black,
+    return SizedBox.expand(
       child: Column(
         children: [
           Expanded(
-            flex: 1,
             child: accChart,
           ),
           divider(),
           Expanded(
-            flex: 1,
             child: fftChart,
           ),
           divider(),
-          getTitleWiget("特徵值", null),
           Expanded(child: FeatureDisplay(features))
         ],
       ),
@@ -157,25 +154,19 @@ class _HomePageState extends State<HomePage> {
     int lenOfTimeDomainData = data.accData_X.length;
     int lenOfFFTData = data.fftData_X.length;
 
-    List<double> xListOfTDData =
-        List.generate(512, (int index) => (index).toDouble(), growable: true);
+    List<double> xListOfTDData = List.generate(512, (int index) => (index).toDouble(), growable: true);
 
     double freqStep = 4000 / 256; //256 > 4000
 
-    List<double> freqListOfFFTData = List.generate(
-        256, (int index) => (index * freqStep).toDouble(),
-        growable: true);
+    List<double> freqListOfFFTData = List.generate(256, (int index) => (index * freqStep).toDouble(), growable: true);
 
     SimpleData xAxisTDData = SimpleData('X', xListOfTDData, data.accData_X);
     SimpleData yAxisTDData = SimpleData('Y', xListOfTDData, data.accData_Y);
     SimpleData zAxisTDData = SimpleData('Z', xListOfTDData, data.accData_Z);
 
-    SimpleData xAxisFFTData =
-        SimpleData('X', freqListOfFFTData, data.fftData_X);
-    SimpleData yAxisFFTData =
-        SimpleData('Y', freqListOfFFTData, data.fftData_Y);
-    SimpleData zAxisFFTData =
-        SimpleData('Z', freqListOfFFTData, data.fftData_Z);
+    SimpleData xAxisFFTData = SimpleData('X', freqListOfFFTData, data.fftData_X);
+    SimpleData yAxisFFTData = SimpleData('Y', freqListOfFFTData, data.fftData_Y);
+    SimpleData zAxisFFTData = SimpleData('Z', freqListOfFFTData, data.fftData_Z);
 
     accData = [xAxisTDData, yAxisTDData, zAxisTDData];
     fFtData = [xAxisFFTData, yAxisFFTData, zAxisFFTData];
@@ -185,6 +176,7 @@ class _HomePageState extends State<HomePage> {
     if (User.writeDataToDb) {
       //db
       db.API.insertData(SensorData(
+        _ssmMoudle.ip,
         DateTime.now(),
         features.acc_x_pp,
         features.acc_y_pp,
@@ -214,8 +206,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   var zoomOutPage;
-  void zoomOutChart(data,
-      {required String title, required String xtitle, required String ytitle}) {
+  void zoomOutChart(data, {required String title, required String xtitle, required String ytitle}) {
     zoomOutPage = ZoomOutPage(
       data: data,
       title: title,

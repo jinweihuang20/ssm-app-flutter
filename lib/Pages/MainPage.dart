@@ -29,8 +29,7 @@ class _MainPageState extends State<MainPage> {
   List<PageState> pageStates = [];
   bool isSSMConnected = false;
   final _pageController = PageController(initialPage: 0);
-  final Color bottomNavSelectedIconColor =
-      const Color.fromARGB(255, 65, 128, 211);
+  final Color bottomNavSelectedIconColor = const Color.fromARGB(255, 65, 128, 211);
   var appBarBackgroundColor = Colors.blue;
   Color bottomNavNotSelectedIconColor = Colors.white;
   bool _homePagePauseFlag = false;
@@ -38,16 +37,9 @@ class _MainPageState extends State<MainPage> {
     return ButtonBar(
       alignment: MainAxisAlignment.center,
       children: [
-        IconButton(
-            onPressed: () => {homePage.state.saveAccDataToMachine()},
-            icon: const Icon(Icons.save)),
-        IconButton(
-            padding: const EdgeInsets.all(1),
-            onPressed: _homePagePauseFlag ? null : _homePagePause,
-            icon: const Icon(Icons.pause_circle_outline)),
-        IconButton(
-            onPressed: !_homePagePauseFlag ? null : _homePageResume,
-            icon: const Icon(Icons.play_arrow))
+        IconButton(onPressed: () => {homePage.state.saveAccDataToMachine()}, icon: const Icon(Icons.save)),
+        IconButton(padding: const EdgeInsets.all(1), onPressed: _homePagePauseFlag ? null : _homePagePause, icon: const Icon(Icons.pause_circle_outline)),
+        IconButton(onPressed: !_homePagePauseFlag ? null : _homePageResume, icon: const Icon(Icons.play_arrow))
       ],
     );
   }
@@ -81,12 +73,10 @@ class _MainPageState extends State<MainPage> {
           ssmModuleOnConnect: connectedFromDeviceConnecPage,
           connected: isSSMConnected,
         ),
-        title: '連線',
+        title: '模組連線/設定',
         icon: const Icon(Icons.settings_ethernet),
         iconColor: bottomNavNotSelectedIconColor);
-    deviceConnPageState.appBarWidget = IconButton(
-        onPressed: opQRCodeSacnner,
-        icon: const Icon(Icons.qr_code_scanner_sharp));
+    deviceConnPageState.appBarWidget = IconButton(onPressed: opQRCodeSacnner, icon: const Icon(Icons.qr_code_scanner_sharp));
     ls.add(deviceConnPageState);
 
     var quertPage = PageState(
@@ -95,11 +85,7 @@ class _MainPageState extends State<MainPage> {
         title: '資料查詢',
         icon: const Icon(Icons.query_stats_outlined),
         iconColor: bottomNavNotSelectedIconColor);
-    quertPage.appBarWidget = IconButton(
-        onPressed: () {
-          (quertPage.pageWidget as QueryPage).state.refresh();
-        },
-        icon: const Icon(Icons.refresh));
+
     ls.add(quertPage);
     ls.add(PageState(
         badgeState: MyBadgeState(showBadge: false),
@@ -107,6 +93,7 @@ class _MainPageState extends State<MainPage> {
         title: '系統設定',
         icon: const Icon(Icons.settings),
         iconColor: bottomNavNotSelectedIconColor));
+
     return ls;
   }
 
@@ -136,10 +123,7 @@ class _MainPageState extends State<MainPage> {
           ),
           TextButton(
             child: Text(title),
-            style: ElevatedButton.styleFrom(
-                onSurface: Colors.transparent,
-                onPrimary: iconColor,
-                enableFeedback: false),
+            style: ElevatedButton.styleFrom(onSurface: Colors.transparent, onPrimary: iconColor, enableFeedback: false),
             onPressed: () => action(index, state.title),
           )
         ],
@@ -150,9 +134,9 @@ class _MainPageState extends State<MainPage> {
 
     return <Widget>[
       Padding(
-          padding: const EdgeInsets.all(10),
+          padding: const EdgeInsets.all(1),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: ls,
           ))
     ];
@@ -167,7 +151,9 @@ class _MainPageState extends State<MainPage> {
       PageState pageState = pageStates[activeIndex];
       pageState.iconColor = bottomNavSelectedIconColor;
       appBarRightWidget = pageState.appBarWidget;
-      title = pageState.title;
+      User.loadSetting().then((value) {
+        title = pageState.title + "(${value.ssmIp})";
+      });
 
       ///
       if (activeIndex == 2) {
@@ -181,8 +167,7 @@ class _MainPageState extends State<MainPage> {
   ///取得要餵給 PageView的 Widget列表
   List<Widget> _getPageWidgets() {
     List<Widget> ls = [];
-    List.generate(
-        pageStates.length, (index) => {ls.add(pageStates[index].pageWidget)});
+    List.generate(pageStates.length, (index) => {ls.add(pageStates[index].pageWidget)});
     return ls;
   }
 
@@ -193,8 +178,7 @@ class _MainPageState extends State<MainPage> {
     User.loadSetting().then((value) async {
       await tryConnectToSSM(value);
       setState(() {
-        bottomNavNotSelectedIconColor =
-            User.setting.appTheme == 'dark' ? Colors.white : Colors.black54;
+        bottomNavNotSelectedIconColor = User.setting.appTheme == 'dark' ? Colors.white : Colors.black54;
 
         pageStates = getPageStates();
         _renderUI(0);

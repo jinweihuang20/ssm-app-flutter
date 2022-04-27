@@ -273,6 +273,7 @@ class _DataPageState extends State<DataPage> {
       if (User.writeDataToDb) {
         //db
         db.API.insertData(SensorData(
+          module_address,
           DateTime.now(),
           features.acc_x_pp,
           features.acc_y_pp,

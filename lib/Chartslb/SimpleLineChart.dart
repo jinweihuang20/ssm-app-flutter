@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:charts_flutter/flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
+import 'package:ssmflutter/Chartslb/ISOPlugin.dart';
 import 'package:ssmflutter/Chartslb/TimeLineChart.dart';
 
 class SimpleLineChart extends StatefulWidget {
@@ -17,7 +18,8 @@ class SimpleLineChart extends StatefulWidget {
       this.useNumericEndPointsTickProviderSpec = false,
       this.ledgenPosition = charts.BehaviorPosition.end,
       this.showZoomOutButton = false,
-      this.zoomButtonOnClick})
+      this.zoomButtonOnClick,
+      this.showISO = false})
       : super(key: key);
   final String title;
   final String yAxisTitle;
@@ -29,6 +31,7 @@ class SimpleLineChart extends StatefulWidget {
   final charts.BehaviorPosition ledgenPosition;
   final Function()? zoomButtonOnClick;
   final bool showZoomOutButton;
+  final bool showISO;
   @override
   State<SimpleLineChart> createState() => _SimpleLineChartState();
 }
@@ -53,31 +56,35 @@ class _SimpleLineChartState extends State<SimpleLineChart>
             lineStyle: charts.LineStyleSpec(
                 thickness: 1, color: charts.MaterialPalette.white)));
 
+    List<ChartBehavior<num>> titlesBehavios = [
+      charts.SeriesLegend(
+          position: widget.ledgenPosition, showMeasures: true),
+      charts.ChartTitle(widget.showTitle ? widget.title : "",
+          behaviorPosition: BehaviorPosition.top,
+          titleStyleSpec: const TextStyleSpec(
+              color: charts.MaterialPalette.white, lineHeight: 1)),
+      charts.ChartTitle(widget.xAxistTitle,
+          behaviorPosition: charts.BehaviorPosition.bottom,
+          titleStyleSpec: const charts.TextStyleSpec(
+              fontSize: 14, color: charts.MaterialPalette.white)),
+      charts.ChartTitle(widget.yAxisTitle,
+          behaviorPosition: charts.BehaviorPosition.start,
+          titleStyleSpec: const charts.TextStyleSpec(
+              fontSize: 14, color: charts.MaterialPalette.white))
+    ];
+
+    List<ChartBehavior<num>> behaviors = [];
+    if (widget.showISO) {
+      behaviors.add(iSORangeAnnotation());
+    }
+    behaviors.addAll(titlesBehavios);
+
     var chart = charts.LineChart(
       widget.dataSetList.isEmpty
           ? getDefual()
           : _genSeriesDataList(widget.dataSetList),
       animate: false,
-      behaviors: [
-        charts.SeriesLegend(
-            position: widget.ledgenPosition,
-            showMeasures: true,
-            cellPadding: const EdgeInsets.all(
-              1,
-            )),
-        charts.ChartTitle(widget.showTitle ? widget.title : "",
-            behaviorPosition: BehaviorPosition.top,
-            titleStyleSpec: const TextStyleSpec(
-                color: charts.MaterialPalette.white, lineHeight: 1)),
-        charts.ChartTitle(widget.xAxistTitle,
-            behaviorPosition: charts.BehaviorPosition.bottom,
-            titleStyleSpec: const charts.TextStyleSpec(
-                fontSize: 14, color: charts.MaterialPalette.white)),
-        charts.ChartTitle(widget.yAxisTitle,
-            behaviorPosition: charts.BehaviorPosition.start,
-            titleStyleSpec: const charts.TextStyleSpec(
-                fontSize: 14, color: charts.MaterialPalette.white)),
-      ],
+      behaviors: behaviors,
       domainAxis: axis,
       primaryMeasureAxis: axis,
     );
@@ -126,8 +133,10 @@ List<Series<SimpleSeriesPt, double>> _genSeriesDataList(
     List<SimpleData> userDataSetList) {
   List<Series<SimpleSeriesPt, double>> seriesList = [];
 
-  List.generate(userDataSetList.length,
-      (index) => {seriesList.add(_genSeriesData(userDataSetList[index]))});
+  List.generate(
+      userDataSetList.length,
+      (index) =>
+          {seriesList.add(_genSeriesData(userDataSetList[index]))});
 
   return seriesList;
 }
@@ -137,8 +146,8 @@ Series<SimpleSeriesPt, double> _genSeriesData(SimpleData userData) {
   List.generate(
       userData.xList.length,
       (index) => {
-            ptList.add(
-                SimpleSeriesPt(userData.xList[index], userData.values[index]))
+            ptList.add(SimpleSeriesPt(
+                userData.xList[index], userData.values[index]))
           });
 
   Series<SimpleSeriesPt, double> series = Series(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ssmflutter/SSMModule/MeasureRangeDropDownBtn.dart';
 import 'package:ssmflutter/SSMModule/emulator.dart' as ssm_emulator;
 import '../QRCode/QRSacnWidget.dart';
 import '../SSMModule/module.dart';
@@ -29,39 +30,44 @@ class _DeviceConnectPageState extends State<DeviceConnectPage> with AutomaticKee
   final TextStyle titleStyle = const TextStyle(fontSize: 18);
   SSMConnectState _ssmState = SSMConnectState(false, Module(ip: "127.0.0.1", port: 5000));
 
-  final Widget widget_nor = Row(
-    mainAxisAlignment: MainAxisAlignment.center,
-    children: const [
-      Icon(
-        Icons.check_circle,
+  get widget_nor => Card(
         color: Colors.green,
-      ),
-      Padding(
-        padding: EdgeInsets.only(left: 10),
-        child: Text(
-          '模組正常連線中',
-          style: TextStyle(fontSize: 20),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: const [
+            Icon(
+              Icons.check_circle,
+              color: Colors.white,
+            ),
+            Padding(
+              padding: EdgeInsets.only(left: 10),
+              child: Text(
+                '模組正常連線中',
+                style: TextStyle(fontSize: 20),
+              ),
+            )
+          ],
         ),
-      )
-    ],
-  );
+      );
 
-  final Widget widget_abnor = Row(
-    mainAxisAlignment: MainAxisAlignment.center,
-    children: const [
-      Icon(
-        Icons.warning,
-        color: Colors.red,
-      ),
-      Padding(
-        padding: EdgeInsets.only(left: 10),
-        child: Text(
-          '模組連線異常',
-          style: TextStyle(fontSize: 20),
-        ),
-      )
-    ],
-  );
+  get widget_abnor => Card(
+      color: Color.fromARGB(255, 177, 11, 2),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: const [
+          Icon(
+            Icons.warning,
+            color: Colors.white,
+          ),
+          Padding(
+            padding: EdgeInsets.only(left: 10),
+            child: Text(
+              '模組連線異常',
+              style: TextStyle(fontSize: 20),
+            ),
+          )
+        ],
+      ));
 
   bool _connected = false;
 
@@ -160,10 +166,25 @@ class _DeviceConnectPageState extends State<DeviceConnectPage> with AutomaticKee
           const Divider(),
           Padding(
             padding: const EdgeInsets.only(top: 20, left: 10),
-            child: Column(
-              children: [Text('模組設定', style: titleStyle)],
-            ),
+            child: Text('模組設定', style: titleStyle),
           ),
+          Card(
+            child: Column(
+              children: [
+                Padding(
+                    padding: EdgeInsets.all(10),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('量測範圍'),
+                        MeasureRangeDropDownBtn(
+                          onRangeSelected: (range) => {},
+                        )
+                      ],
+                    ))
+              ],
+            ),
+          )
           // ElevatedButton(
           //   onPressed: openQRCodeScanner,
           //   child: const Text('qrView'),
