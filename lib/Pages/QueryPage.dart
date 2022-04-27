@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:ssmflutter/Chartslb/ISOPlugin.dart';
 import 'package:ssmflutter/Database/SensorData.dart';
+import 'package:ssmflutter/SysSetting.dart';
 import '../Chartslb/TimeLineChart.dart';
 import '../Database/SqliteAPI.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
@@ -178,14 +179,17 @@ class _QueryPage extends State<QueryPage>
 
   Future<List<SensorData>> query() async {
     List<SensorData> outputLs = [];
-    List<Map<String, dynamic>> ls =
-        await API.queryOutWithTimeInterval(startTime, endTime);
+    var settings = await User.loadSetting();
+
+    List<Map<String, dynamic>> ls = await API
+        .queryOutWithTimeInterval(settings.ssmIp, startTime, endTime);
     int? len = ls.length;
 
     if (len != 0) {
       List.generate(len, (i) {
         var dp = ls[i];
         SensorData data = SensorData(
+            dp['sensorIP'],
             DateTime.parse(dp['time']),
             dp['acc_x_pp'],
             dp['acc_y_pp'],
