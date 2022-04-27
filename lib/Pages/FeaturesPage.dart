@@ -12,30 +12,13 @@ class FeaturesPage extends StatefulWidget {
   State<FeaturesPage> createState() => state;
 }
 
-class _FeaturesPageState extends State<FeaturesPage>
-    with AutomaticKeepAliveClientMixin {
+class _FeaturesPageState extends State<FeaturesPage> with AutomaticKeepAliveClientMixin {
   Module _ssmMoudle = Module(ip: 'ip', port: -1);
   Features features = Features();
-  List<TimeData> oaData = [
-    TimeData(name: 'X', timeList: [], values: []),
-    TimeData(name: 'Y', timeList: [], values: []),
-    TimeData(name: 'Z', timeList: [], values: [])
-  ];
-  List<TimeData> accData = [
-    TimeData(name: 'X', timeList: [], values: []),
-    TimeData(name: 'Y', timeList: [], values: []),
-    TimeData(name: 'Z', timeList: [], values: [])
-  ];
-  List<TimeData> velData = [
-    TimeData(name: 'X', timeList: [], values: []),
-    TimeData(name: 'Y', timeList: [], values: []),
-    TimeData(name: 'Z', timeList: [], values: [])
-  ];
-  List<TimeData> disData = [
-    TimeData(name: 'X', timeList: [], values: []),
-    TimeData(name: 'Y', timeList: [], values: []),
-    TimeData(name: 'Z', timeList: [], values: [])
-  ];
+  List<TimeData> oaData = [TimeData(name: 'X', timeList: [], values: []), TimeData(name: 'Y', timeList: [], values: []), TimeData(name: 'Z', timeList: [], values: [])];
+  List<TimeData> accData = [TimeData(name: 'X', timeList: [], values: []), TimeData(name: 'Y', timeList: [], values: []), TimeData(name: 'Z', timeList: [], values: [])];
+  List<TimeData> velData = [TimeData(name: 'X', timeList: [], values: []), TimeData(name: 'Y', timeList: [], values: []), TimeData(name: 'Z', timeList: [], values: [])];
+  List<TimeData> disData = [TimeData(name: 'X', timeList: [], values: []), TimeData(name: 'Y', timeList: [], values: []), TimeData(name: 'Z', timeList: [], values: [])];
   final Color _noActiveBtnColor = Colors.grey;
   final Color _activeBtnColor = const Color.fromARGB(255, 21, 64, 93);
 
@@ -154,24 +137,9 @@ class _FeaturesPageState extends State<FeaturesPage>
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            Expanded(
-                child: axisValueWiget(
-                    title: "X",
-                    value: showingData.xValue,
-                    unit: showingData.unit,
-                    backgroundColor: const Color.fromARGB(255, 37, 129, 204))),
-            Expanded(
-                child: axisValueWiget(
-                    title: "Y",
-                    value: showingData.yValue,
-                    unit: showingData.unit,
-                    backgroundColor: Colors.red)),
-            Expanded(
-                child: axisValueWiget(
-                    title: "Z",
-                    value: showingData.zValue,
-                    unit: showingData.unit,
-                    backgroundColor: const Color.fromARGB(255, 230, 215, 81)))
+            Expanded(child: axisValueWiget(title: "X", value: showingData.xValue, unit: showingData.unit, backgroundColor: const Color.fromARGB(255, 37, 129, 204))),
+            Expanded(child: axisValueWiget(title: "Y", value: showingData.yValue, unit: showingData.unit, backgroundColor: Colors.red)),
+            Expanded(child: axisValueWiget(title: "Z", value: showingData.zValue, unit: showingData.unit, backgroundColor: const Color.fromARGB(255, 230, 215, 81)))
           ],
         ),
         // FeatureDisplay(features),
@@ -188,10 +156,7 @@ class _FeaturesPageState extends State<FeaturesPage>
     );
   }
 
-  Widget iconButton(
-      {required String text,
-      required Color color,
-      required Function() onPressed}) {
+  Widget iconButton({required String text, required Color color, required Function() onPressed}) {
     return Padding(
         padding: const EdgeInsets.all(4),
         child: ElevatedButton(
@@ -200,18 +165,11 @@ class _FeaturesPageState extends State<FeaturesPage>
             text,
             style: const TextStyle(fontWeight: FontWeight.w800),
           ),
-          style: ElevatedButton.styleFrom(
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30)),
-              primary: color),
+          style: ElevatedButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)), primary: color),
         ));
   }
 
-  Widget axisValueWiget(
-      {required String title,
-      required dynamic value,
-      required String unit,
-      Color backgroundColor = Colors.blue}) {
+  Widget axisValueWiget({required String title, required dynamic value, required String unit, Color backgroundColor = Colors.blue}) {
     return Padding(
         padding: const EdgeInsets.all(3),
         child: SizedBox(
@@ -239,18 +197,12 @@ class _FeaturesPageState extends State<FeaturesPage>
                     child: Row(
                   children: [
                     Expanded(
-                      child: Center(
-                          child: Text((value as double).toStringAsFixed(2),
-                              style: const TextStyle(
-                                  fontSize: 27,
-                                  letterSpacing: 2,
-                                  fontWeight: FontWeight.bold))),
+                      child:
+                          Center(child: Text((value as double).toStringAsFixed(2), style: const TextStyle(fontSize: 27, letterSpacing: 2, fontWeight: FontWeight.bold))),
                     ),
                     Padding(
                       padding: const EdgeInsets.only(right: 6, top: 9),
-                      child: Text(unit,
-                          style: const TextStyle(
-                              fontSize: 15, fontStyle: FontStyle.italic)),
+                      child: Text(unit, style: const TextStyle(fontSize: 15, fontStyle: FontStyle.italic)),
                     )
                   ],
                 ))
@@ -312,7 +264,6 @@ class _FeaturesPageState extends State<FeaturesPage>
     } catch (e) {
       print('features rev..$e');
     }
-    print('features rev..');
   }
 }
 

@@ -1,9 +1,12 @@
+// ignore_for_file: avoid_print
+
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:downloads_path_provider/downloads_path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:ssmflutter/Chartslb/SimpleLineChart.dart';
+import 'package:ssmflutter/SocialMediaShare/SocialMediaWidget.dart';
 
 Future<Directory> downloadsDirectory = DownloadsPathProvider.downloadsDirectory;
 
@@ -54,6 +57,8 @@ class FileNameHelper {
 
   static Future<void> displayTextInputDialog(BuildContext context) async {
     return showDialog(
+      barrierDismissible: false,
+      barrierLabel: "???",
       context: context,
       builder: (context) {
         return AlertDialog(
@@ -88,16 +93,44 @@ class FileNameHelper {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Save OK !'),
-          content: Text("檔案已儲存 " + _textFieldController.text),
-          actions: <Widget>[
-            ElevatedButton(
-              child: const Text('OK'),
-              onPressed: () {
-                print(_textFieldController.text);
-                Navigator.pop(context);
-              },
+          title: TextButton.icon(
+              onPressed: () => {},
+              icon: Icon(Icons.check),
+              label: const Text('Save OK !'),
+              style: ElevatedButton.styleFrom(
+                primary: Colors.transparent,
+                onPrimary: Colors.white,
+                textStyle: TextStyle(fontSize: 22, color: Colors.white),
+              )),
+          contentPadding: const EdgeInsets.only(top: 20),
+          content: SizedBox(
+            height: 130,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Text("檔案已儲存:" + _textFieldController.text),
+                const Divider(
+                  thickness: 2,
+                ),
+                const Text('分享給朋友'),
+                const SocialMediaShareWidget(),
+              ],
             ),
+          ),
+          actions: <Widget>[
+            const Divider(
+              thickness: 2,
+            ),
+            SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  child: const Text('OK'),
+                  style: ElevatedButton.styleFrom(primary: Colors.white, onPrimary: Colors.grey),
+                  onPressed: () {
+                    print(_textFieldController.text);
+                    Navigator.pop(context);
+                  },
+                )),
           ],
         );
       },
