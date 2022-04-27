@@ -184,9 +184,9 @@ class _QueryPage extends State<QueryPage> with AutomaticKeepAliveClientMixin {
   }
 
   Future<List<SensorData>> query() async {
+    showLoadingDialog();
     List<SensorData> outputLs = [];
     var settings = await User.loadSetting();
-
     List<Map<String, dynamic>> ls = await API.queryOutWithTimeInterval(settings.ssmIp, startTime, endTime);
     int? len = ls.length;
 
@@ -206,7 +206,7 @@ class _QueryPage extends State<QueryPage> with AutomaticKeepAliveClientMixin {
       velData = axisDataLs[1];
       disData = axisDataLs[2];
     });
-
+    Navigator.pop(context);
     return outputLs;
   }
 
@@ -222,6 +222,21 @@ class _QueryPage extends State<QueryPage> with AutomaticKeepAliveClientMixin {
       });
       print(FileNameHelper.fileName);
     });
+  }
+
+  showLoadingDialog() async {
+    await showDialog(
+        barrierDismissible: false,
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            backgroundColor: Colors.black,
+            contentTextStyle: const TextStyle(color: Colors.white),
+            content: Row(
+              children: const [CircularProgressIndicator(), Padding(padding: EdgeInsets.only(left: 20), child: Text('資料查詢中'))],
+            ),
+          );
+        });
   }
 }
 
