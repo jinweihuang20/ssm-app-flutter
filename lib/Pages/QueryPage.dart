@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
+import 'package:ssmflutter/Chartslb/ISOPlugin.dart';
 import 'package:ssmflutter/Database/SensorData.dart';
 import '../Chartslb/TimeLineChart.dart';
 import '../Database/SqliteAPI.dart';
@@ -105,6 +106,8 @@ class _QueryPage extends State<QueryPage>
               title: "速度",
               yAxisTitle: "mm/s",
               dataSetList: velData,
+              chartISOProperty:
+                  ChartISOProperty(showIso: true, isoType: 1),
             ),
           ),
           const Divider(),
