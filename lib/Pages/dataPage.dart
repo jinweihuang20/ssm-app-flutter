@@ -145,24 +145,19 @@ class _DataPageState extends State<DataPage> {
             Padding(
               padding: const EdgeInsets.only(right: 10),
               child: ElevatedButton(
-                onPressed:
-                    pauseFlag ? null : () => {pauseFlag = true},
+                onPressed: pauseFlag ? null : () => {pauseFlag = true},
                 child: const Text('Pause'),
-                style: ButtonStyle(
-                    backgroundColor:
-                        MaterialStateProperty.all(Colors.red)),
+                style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.red)),
               ),
             ),
             ElevatedButton(
-              onPressed:
-                  !pauseFlag ? null : () => {pauseFlag = false},
+              onPressed: !pauseFlag ? null : () => {pauseFlag = false},
               child: const Text('Resume'),
             )
           ],
         )
       ],
-      floatingActionButtonLocation:
-          FloatingActionButtonLocation.miniCenterDocked,
+      floatingActionButtonLocation: FloatingActionButtonLocation.miniCenterDocked,
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -171,11 +166,7 @@ class _DataPageState extends State<DataPage> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  TextButton.icon(
-                      onPressed: () => {},
-                      icon:
-                          Icon(connected ? Icons.check : Icons.error),
-                      label: Text('$module_address')),
+                  TextButton.icon(onPressed: () => {}, icon: Icon(connected ? Icons.check : Icons.error), label: Text('$module_address')),
                   MeasureRangeDropDownBtn(
                     onRangeSelected: _setRange,
                   )
@@ -189,32 +180,15 @@ class _DataPageState extends State<DataPage> {
                   accSeries,
                   animate: false,
                   domainAxis: const charts.NumericAxisSpec(
-                      tickProviderSpec:
-                          charts.BasicNumericTickProviderSpec(
+                      tickProviderSpec: charts.BasicNumericTickProviderSpec(
                         zeroBound: true,
                       ),
-                      renderSpec: charts.GridlineRendererSpec(
-                          lineStyle: charts.LineStyleSpec(
-                              color: charts.Color(
-                                  r: 11, g: 11, b: 11, a: 9)))),
+                      renderSpec: charts.GridlineRendererSpec(lineStyle: charts.LineStyleSpec(color: charts.Color(r: 11, g: 11, b: 11, a: 9)))),
                   behaviors: [
-                    charts.SeriesLegend(
-                        position: charts.BehaviorPosition.end,
-                        entryTextStyle:
-                            const charts.TextStyleSpec(fontSize: 11)),
-                    charts.ChartTitle('ACC RAW DATA',
-                        titleStyleSpec:
-                            const charts.TextStyleSpec(fontSize: 14)),
-                    charts.ChartTitle('G',
-                        behaviorPosition:
-                            charts.BehaviorPosition.start,
-                        titleStyleSpec:
-                            const charts.TextStyleSpec(fontSize: 14)),
-                    charts.ChartTitle('INDEX',
-                        behaviorPosition:
-                            charts.BehaviorPosition.bottom,
-                        titleStyleSpec:
-                            const charts.TextStyleSpec(fontSize: 14))
+                    charts.SeriesLegend(position: charts.BehaviorPosition.end, entryTextStyle: const charts.TextStyleSpec(fontSize: 11)),
+                    charts.ChartTitle('ACC RAW DATA', titleStyleSpec: const charts.TextStyleSpec(fontSize: 14)),
+                    charts.ChartTitle('G', behaviorPosition: charts.BehaviorPosition.start, titleStyleSpec: const charts.TextStyleSpec(fontSize: 14)),
+                    charts.ChartTitle('INDEX', behaviorPosition: charts.BehaviorPosition.bottom, titleStyleSpec: const charts.TextStyleSpec(fontSize: 14))
                   ],
                 ),
               ),
@@ -229,32 +203,15 @@ class _DataPageState extends State<DataPage> {
                   fftSeries,
                   animate: false,
                   domainAxis: const charts.NumericAxisSpec(
-                      tickProviderSpec:
-                          charts.BasicNumericTickProviderSpec(
+                      tickProviderSpec: charts.BasicNumericTickProviderSpec(
                         zeroBound: true,
                       ),
-                      renderSpec: charts.GridlineRendererSpec(
-                          lineStyle: charts.LineStyleSpec(
-                              color: charts.Color(
-                                  r: 11, g: 11, b: 11, a: 9)))),
+                      renderSpec: charts.GridlineRendererSpec(lineStyle: charts.LineStyleSpec(color: charts.Color(r: 11, g: 11, b: 11, a: 9)))),
                   behaviors: [
-                    charts.SeriesLegend(
-                        position: charts.BehaviorPosition.end,
-                        entryTextStyle:
-                            const charts.TextStyleSpec(fontSize: 11)),
-                    charts.ChartTitle('FFT',
-                        titleStyleSpec:
-                            const charts.TextStyleSpec(fontSize: 14)),
-                    charts.ChartTitle('Mag(G)',
-                        behaviorPosition:
-                            charts.BehaviorPosition.start,
-                        titleStyleSpec:
-                            const charts.TextStyleSpec(fontSize: 14)),
-                    charts.ChartTitle('Freq(Hz)',
-                        behaviorPosition:
-                            charts.BehaviorPosition.bottom,
-                        titleStyleSpec:
-                            const charts.TextStyleSpec(fontSize: 14))
+                    charts.SeriesLegend(position: charts.BehaviorPosition.end, entryTextStyle: const charts.TextStyleSpec(fontSize: 11)),
+                    charts.ChartTitle('FFT', titleStyleSpec: const charts.TextStyleSpec(fontSize: 14)),
+                    charts.ChartTitle('Mag(G)', behaviorPosition: charts.BehaviorPosition.start, titleStyleSpec: const charts.TextStyleSpec(fontSize: 14)),
+                    charts.ChartTitle('Freq(Hz)', behaviorPosition: charts.BehaviorPosition.bottom, titleStyleSpec: const charts.TextStyleSpec(fontSize: 14))
                   ],
                 ),
               ),
@@ -353,8 +310,7 @@ class _DataPageState extends State<DataPage> {
         )
       ];
       accSeries = getAccRawSeries(accX, accY, accZ);
-      fftSeries = GetFFTSeries(
-          data.fftData_X, data.fftData_Y, data.fftData_Z, 8000);
+      fftSeries = GetFFTSeries(data.fftData_X, data.fftData_Y, data.fftData_Z, 8000);
     });
   }
 

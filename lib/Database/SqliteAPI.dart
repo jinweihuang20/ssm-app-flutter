@@ -18,22 +18,13 @@ class API {
     String ip2 = ipSplited[1];
     String ip3 = ipSplited[2];
     String ip4 = ipSplited[3];
-    return "sensor_data_tb_" +
-        ip1 +
-        "_" +
-        ip2 +
-        "_" +
-        ip3 +
-        "_" +
-        ip4;
+    return "sensor_data_tb_" + ip1 + "_" + ip2 + "_" + ip3 + "_" + ip4;
   }
 
   static Future<Database> openDB(String ip) async {
     String tableName = getTableNameByIP(ip);
-    var dbFilePath =
-        join(await getDatabasesPath(), featureDataDBFileName);
-    Database database =
-        await openDatabase(dbFilePath, onCreate: (db, version) {
+    var dbFilePath = join(await getDatabasesPath(), featureDataDBFileName);
+    Database database = await openDatabase(dbFilePath, onCreate: (db, version) {
       return db.execute(
         "CREATE TABLE $tableName(time TEXT PRIMARY KEY, sensorIP TEXT, acc_x_pp REAL, acc_y_pp REAL, acc_z_pp REAL,vel_x_rms REAL,vel_y_rms REAL,vel_z_rms REAL,dis_x_pp REAL,dis_y_pp REAL,dis_z_pp REAL)",
       );
@@ -43,8 +34,7 @@ class API {
 
   static Future<Database> openAPPSettingDB() async {
     var dbFilePath = join(await getDatabasesPath(), appSettingDBName);
-    Database database =
-        await openDatabase(dbFilePath, onCreate: (db, version) {
+    Database database = await openDatabase(dbFilePath, onCreate: (db, version) {
       return db.execute(
         "CREATE TABLE $appSettingTableName(scope TEXT PRIMARY KEY, appTheme TEXT, saveDataToDB REAL, dataKeepDay REAL, ssmIp TEXT, ssmPort REAL)",
       );
@@ -56,11 +46,9 @@ class API {
   static Future<void> insertData(SensorData data) async {
     Database database = await openDB(data.sensorIP);
     try {
-      await database.insert(
-          getTableNameByIP(data.sensorIP), data.toJson());
+      await database.insert(getTableNameByIP(data.sensorIP), data.toJson());
     } catch (e) {
-      var dbFilePath =
-          join(await getDatabasesPath(), featureDataDBFileName);
+      var dbFilePath = join(await getDatabasesPath(), featureDataDBFileName);
       deleteDatabase(dbFilePath);
       insertData(data);
 
@@ -75,8 +63,7 @@ class API {
     List<Map<String, Object?>>? ls = [];
     Database database = await openDB(ip);
     try {
-      var startTimeStr =
-          DateTime.now().add(Duration(days: -day)).toIso8601String();
+      var startTimeStr = DateTime.now().add(Duration(days: -day)).toIso8601String();
       String condition = "time <= '" + startTimeStr + "'";
       return await database.delete(tableName, where: condition);
     } catch (e) {
@@ -91,12 +78,9 @@ class API {
     List<Map<String, Object?>>? ls = [];
     Database database = await openDB(ip);
     try {
-      var startTimeStr = DateTime.now()
-          .add(const Duration(days: 1))
-          .toIso8601String();
+      var startTimeStr = DateTime.now().add(const Duration(days: 1)).toIso8601String();
       String condition = "time <= '" + startTimeStr + "'";
-      return await database.delete(getTableNameByIP(ip),
-          where: condition);
+      return await database.delete(getTableNameByIP(ip), where: condition);
     } catch (e) {
       print(e);
       return -1;
@@ -104,8 +88,7 @@ class API {
   }
 
   ///從資料庫中查詢所有的振動數據
-  static Future<List<Map<String, Object?>>?> queryOut(
-      String ip) async {
+  static Future<List<Map<String, Object?>>?> queryOut(String ip) async {
     List<Map<String, Object?>>? ls = [];
     Database database = await openDB(ip);
     try {
@@ -118,21 +101,15 @@ class API {
   }
 
   ///從資料庫中查詢特定時間區間的振動數據
-  static Future<List<Map<String, dynamic?>>> queryOutWithTimeInterval(
-      String ip, DateTime start, DateTime end) async {
+  static Future<List<Map<String, dynamic?>>> queryOutWithTimeInterval(String ip, DateTime start, DateTime end) async {
     List<Map<String, dynamic>> ls = [];
     Database database = await openDB(ip);
     String startTimeStr = start.toIso8601String();
     String endTimeStr = end.toIso8601String();
-    String condition = "time BETWEEN '" +
-        startTimeStr +
-        "' AND '" +
-        endTimeStr +
-        "'";
+    String condition = "time BETWEEN '" + startTimeStr + "' AND '" + endTimeStr + "'";
     print(condition);
     try {
-      ls = await database.query(getTableNameByIP(ip),
-          where: condition);
+      ls = await database.query(getTableNameByIP(ip), where: condition);
       print(ls.length);
     } catch (e) {
       print('query error: $e');
@@ -148,16 +125,14 @@ class API {
 
       var existLs = await db.query(appSettingTableName);
       if (existLs.isNotEmpty) {
-        await db.update(appSettingTableName, setting.toMap(),
-            where: "scope == 'user'");
+        await db.update(appSettingTableName, setting.toMap(), where: "scope == 'user'");
       } else {
         await db.insert(appSettingTableName, setting.toMap());
       }
       getAPPSetting();
       print('ok-' '${setting.toMap()}');
     } catch (ee) {
-      var dbFilePath =
-          join(await getDatabasesPath(), '$appSettingDBName');
+      var dbFilePath = join(await getDatabasesPath(), '$appSettingDBName');
       deleteDatabase(dbFilePath);
       saveAPPSetting(setting);
       print(ee);
@@ -173,17 +148,11 @@ class API {
     if (existLs.isNotEmpty) {
       var settingMap = existLs.first;
       settings.appTheme = settingMap['appTheme'].toString();
-      settings.saveDataToDB = int.parse(
-          double.parse(settingMap['saveDataToDB'].toString())
-              .toStringAsFixed(0));
-      settings.dataKeepDay = int.parse(
-          double.parse(settingMap['dataKeepDay'].toString())
-              .toStringAsFixed(0));
+      settings.saveDataToDB = int.parse(double.parse(settingMap['saveDataToDB'].toString()).toStringAsFixed(0));
+      settings.dataKeepDay = int.parse(double.parse(settingMap['dataKeepDay'].toString()).toStringAsFixed(0));
       try {
         settings.ssmIp = settingMap['ssmIp'].toString();
-        settings.ssmPort = int.parse(
-            double.parse(settingMap['ssmPort'].toString())
-                .toStringAsFixed(0));
+        settings.ssmPort = int.parse(double.parse(settingMap['ssmPort'].toString()).toStringAsFixed(0));
       } catch (e) {
         settings.ssmIp = '127.0.0.1';
         settings.ssmPort = 5000;

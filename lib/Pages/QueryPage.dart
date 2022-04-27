@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:ssmflutter/Chartslb/ISOPlugin.dart';
 import 'package:ssmflutter/Database/SensorData.dart';
+import 'package:ssmflutter/Storage/FileSaveLocalHelper.dart';
 import 'package:ssmflutter/SysSetting.dart';
 import '../Chartslb/TimeLineChart.dart';
 import '../Database/SqliteAPI.dart';
@@ -18,8 +19,7 @@ class QueryPage extends StatefulWidget {
   State<QueryPage> createState() => state;
 }
 
-class _QueryPage extends State<QueryPage>
-    with AutomaticKeepAliveClientMixin {
+class _QueryPage extends State<QueryPage> with AutomaticKeepAliveClientMixin {
   int _minQueryNow = 5;
 
   final Color _activeBtnColor = const Color.fromARGB(255, 21, 64, 93);
@@ -37,8 +37,7 @@ class _QueryPage extends State<QueryPage>
 
   @override
   Widget build(BuildContext context) {
-    var btnStyle = ButtonStyle(
-        backgroundColor: MaterialStateProperty.resolveWith(
+    var btnStyle = ButtonStyle(backgroundColor: MaterialStateProperty.resolveWith(
       (Set<MaterialState> states) {
         print(states);
         if (states.contains(MaterialState.pressed)) return Colors.red;
@@ -59,64 +58,69 @@ class _QueryPage extends State<QueryPage>
       query();
     }
 
-    return Column(
-      mainAxisSize: MainAxisSize.max,
-      children: [
-        const Padding(padding: EdgeInsets.only(top: 20)),
-        Row(
-          children: [
-            Expanded(
-                child: iconButton(
-                    text: '過去5分鐘',
-                    onPressed: () {
-                      queryData(5);
-                    },
-                    color: buttonColorMap[5]!)),
-            Expanded(
-                child: iconButton(
-                    text: '過去10分鐘',
-                    onPressed: () {
-                      queryData(10);
-                    },
-                    color: buttonColorMap[10]!)),
-            Expanded(
-                child: iconButton(
-                    text: '過去30分鐘',
-                    onPressed: () {
-                      queryData(30);
-                    },
-                    color: buttonColorMap[30]!))
-          ],
-        ),
-        const Divider(),
-        Expanded(
-            child: chartWidget(
-          title: "加速度",
-          yAxisTitle: "G",
-          data: accData,
-        )),
-        const Divider(),
-        Expanded(
-            child: chartWidget(
-          title: "速度",
-          yAxisTitle: "mm/s",
-          data: velData,
-        )),
-        const Divider(),
-        Expanded(
-            child: chartWidget(
-          title: "位移",
-          yAxisTitle: "um",
-          data: disData,
-        )),
-      ],
+    return Scaffold(
+      resizeToAvoidBottomInset: false,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        toolbarHeight: 40,
+        actions: getActionWigetsList(),
+      ),
+      body: Column(
+        mainAxisSize: MainAxisSize.max,
+        children: [
+          const Padding(padding: EdgeInsets.only(top: 20)),
+          Row(
+            children: [
+              Expanded(
+                  child: iconButton(
+                      text: '過去5分鐘',
+                      onPressed: () {
+                        queryData(5);
+                      },
+                      color: buttonColorMap[5]!)),
+              Expanded(
+                  child: iconButton(
+                      text: '過去10分鐘',
+                      onPressed: () {
+                        queryData(10);
+                      },
+                      color: buttonColorMap[10]!)),
+              Expanded(
+                  child: iconButton(
+                      text: '過去30分鐘',
+                      onPressed: () {
+                        queryData(30);
+                      },
+                      color: buttonColorMap[30]!))
+            ],
+          ),
+          const Divider(),
+          Expanded(
+              child: chartWidget(
+            title: "加速度",
+            yAxisTitle: "G",
+            data: accData,
+          )),
+          const Divider(),
+          Expanded(
+              child: chartWidget(
+            title: "速度",
+            yAxisTitle: "mm/s",
+            data: velData,
+          )),
+          const Divider(),
+          Expanded(
+              child: chartWidget(
+            title: "位移",
+            yAxisTitle: "um",
+            data: disData,
+          )),
+        ],
+      ),
     );
   }
 
-  Widget chartWidget(
-      {required String title,
-      required String yAxisTitle,
-      required List<TimeData> data}) {
+  Widget chartWidget({required String title, required String yAxisTitle, required List<TimeData> data}) {
     return SizedBox(
       width: double.infinity,
       height: 200,
@@ -183,25 +187,14 @@ class _QueryPage extends State<QueryPage>
     List<SensorData> outputLs = [];
     var settings = await User.loadSetting();
 
-    List<Map<String, dynamic>> ls = await API
-        .queryOutWithTimeInterval(settings.ssmIp, startTime, endTime);
+    List<Map<String, dynamic>> ls = await API.queryOutWithTimeInterval(settings.ssmIp, startTime, endTime);
     int? len = ls.length;
 
     if (len != 0) {
       List.generate(len, (i) {
         var dp = ls[i];
-        SensorData data = SensorData(
-            dp['sensorIP'],
-            DateTime.parse(dp['time']),
-            dp['acc_x_pp'],
-            dp['acc_y_pp'],
-            dp['acc_z_pp'],
-            dp['vel_x_rms'],
-            dp['vel_y_rms'],
-            dp['vel_z_rms'],
-            dp['dis_x_pp'],
-            dp['dis_y_pp'],
-            dp['dis_z_pp']);
+        SensorData data = SensorData(dp['sensorIP'], DateTime.parse(dp['time']), dp['acc_x_pp'], dp['acc_y_pp'], dp['acc_z_pp'], dp['vel_x_rms'], dp['vel_y_rms'],
+            dp['vel_z_rms'], dp['dis_x_pp'], dp['dis_y_pp'], dp['dis_z_pp']);
         outputLs.add(data);
       });
     }
@@ -216,6 +209,20 @@ class _QueryPage extends State<QueryPage>
 
     return outputLs;
   }
+
+  List<Widget> getActionWigetsList() {
+    return <Widget>[IconButton(onPressed: saveData, icon: const Icon(Icons.download))];
+  }
+
+  void saveData() {
+    FileNameHelper.displayTextInputDialog(context, titleName: "物理量查詢數據下載").then((value) {
+      saveQueryPageData("${FileNameHelper.fileName}.csv", accData, velData, disData).then((value) {
+        showSaveDoneDialog(context, filePath: value);
+        print(value);
+      });
+      print(FileNameHelper.fileName);
+    });
+  }
 }
 
 List<List<TimeData>> getTimeDataList(sensorDataLs) {
@@ -223,26 +230,17 @@ List<List<TimeData>> getTimeDataList(sensorDataLs) {
   final yAxisColor = charts.MaterialPalette.red.shadeDefault;
   final zAxisColor = charts.MaterialPalette.yellow.shadeDefault;
 
-  TimeData acc_x = TimeData(
-      name: 'ACC-x', timeList: [], values: [], color: xAxisColor);
-  TimeData acc_y = TimeData(
-      name: 'ACC-y', timeList: [], values: [], color: yAxisColor);
-  TimeData acc_z = TimeData(
-      name: 'ACC-z', timeList: [], values: [], color: zAxisColor);
+  TimeData acc_x = TimeData(name: 'ACC-x', timeList: [], values: [], color: xAxisColor);
+  TimeData acc_y = TimeData(name: 'ACC-y', timeList: [], values: [], color: yAxisColor);
+  TimeData acc_z = TimeData(name: 'ACC-z', timeList: [], values: [], color: zAxisColor);
 
-  TimeData vel_x = TimeData(
-      name: 'VEL-x', timeList: [], values: [], color: xAxisColor);
-  TimeData vel_y = TimeData(
-      name: 'VEL-y', timeList: [], values: [], color: yAxisColor);
-  TimeData vel_z = TimeData(
-      name: 'VEL-z', timeList: [], values: [], color: zAxisColor);
+  TimeData vel_x = TimeData(name: 'VEL-x', timeList: [], values: [], color: xAxisColor);
+  TimeData vel_y = TimeData(name: 'VEL-y', timeList: [], values: [], color: yAxisColor);
+  TimeData vel_z = TimeData(name: 'VEL-z', timeList: [], values: [], color: zAxisColor);
 
-  TimeData dis_x = TimeData(
-      name: 'DIS-x', timeList: [], values: [], color: xAxisColor);
-  TimeData dis_y = TimeData(
-      name: 'DIS-y', timeList: [], values: [], color: yAxisColor);
-  TimeData dis_z = TimeData(
-      name: 'DIS-z', timeList: [], values: [], color: zAxisColor);
+  TimeData dis_x = TimeData(name: 'DIS-x', timeList: [], values: [], color: xAxisColor);
+  TimeData dis_y = TimeData(name: 'DIS-y', timeList: [], values: [], color: yAxisColor);
+  TimeData dis_z = TimeData(name: 'DIS-z', timeList: [], values: [], color: zAxisColor);
 
   List.generate(sensorDataLs.length, (index) {
     DateTime time = sensorDataLs[index].time;

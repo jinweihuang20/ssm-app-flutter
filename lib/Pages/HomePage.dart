@@ -10,8 +10,7 @@ import 'package:ssmflutter/SocialMediaShare/SocialMediaWidget.dart';
 import 'package:ssmflutter/Storage/FileSaveLocalHelper.dart';
 import '../Database/SqliteAPI.dart' as db;
 import '../SysSetting.dart';
-import 'package:ssmflutter/Storage/FileSaveLocalHelper.dart'
-    as FileSaveHelper;
+import 'package:ssmflutter/Storage/FileSaveLocalHelper.dart' as FileSaveHelper;
 
 class HomePage extends StatefulWidget {
   HomePage({Key? key}) : super(key: key);
@@ -46,8 +45,7 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         if (zoomOutPage != null) {
           var zoomPage = zoomOutPage as ZoomOutPage;
-          zoomPage.state
-              .update(zoomPage.title == "加速度" ? accData : fFtData);
+          zoomPage.state.update(zoomPage.title == "加速度" ? accData : fFtData);
           print('zoom page render');
         }
       });
@@ -94,7 +92,7 @@ class _HomePageState extends State<HomePage> {
     if (FileNameHelper.fileName == "") return;
     String fileName = FileNameHelper.fileName + ".csv";
     FileSaveHelper.saveRawAccData(fileName, accData).then((filePath) {
-      FileNameHelper.showSaveDoneDialog(context);
+      showSaveDoneDialog(context, filePath: fileName);
       print('Data save ok, Path:$filePath');
     });
   }
@@ -137,8 +135,7 @@ class _HomePageState extends State<HomePage> {
                   padding: const EdgeInsets.only(left: 10),
                   child: Text(
                     text,
-                    style: const TextStyle(
-                        fontSize: 20, color: Colors.white),
+                    style: const TextStyle(fontSize: 20, color: Colors.white),
                   ),
                 )
               ],
@@ -161,29 +158,19 @@ class _HomePageState extends State<HomePage> {
     int lenOfTimeDomainData = data.accData_X.length;
     int lenOfFFTData = data.fftData_X.length;
 
-    List<double> xListOfTDData = List.generate(
-        512, (int index) => (index).toDouble(),
-        growable: true);
+    List<double> xListOfTDData = List.generate(512, (int index) => (index).toDouble(), growable: true);
 
     double freqStep = 4000 / 256; //256 > 4000
 
-    List<double> freqListOfFFTData = List.generate(
-        256, (int index) => (index * freqStep).toDouble(),
-        growable: true);
+    List<double> freqListOfFFTData = List.generate(256, (int index) => (index * freqStep).toDouble(), growable: true);
 
-    SimpleData xAxisTDData =
-        SimpleData('X', xListOfTDData, data.accData_X);
-    SimpleData yAxisTDData =
-        SimpleData('Y', xListOfTDData, data.accData_Y);
-    SimpleData zAxisTDData =
-        SimpleData('Z', xListOfTDData, data.accData_Z);
+    SimpleData xAxisTDData = SimpleData('X', xListOfTDData, data.accData_X);
+    SimpleData yAxisTDData = SimpleData('Y', xListOfTDData, data.accData_Y);
+    SimpleData zAxisTDData = SimpleData('Z', xListOfTDData, data.accData_Z);
 
-    SimpleData xAxisFFTData =
-        SimpleData('X', freqListOfFFTData, data.fftData_X);
-    SimpleData yAxisFFTData =
-        SimpleData('Y', freqListOfFFTData, data.fftData_Y);
-    SimpleData zAxisFFTData =
-        SimpleData('Z', freqListOfFFTData, data.fftData_Z);
+    SimpleData xAxisFFTData = SimpleData('X', freqListOfFFTData, data.fftData_X);
+    SimpleData yAxisFFTData = SimpleData('Y', freqListOfFFTData, data.fftData_Y);
+    SimpleData zAxisFFTData = SimpleData('Z', freqListOfFFTData, data.fftData_Z);
 
     accData = [xAxisTDData, yAxisTDData, zAxisTDData];
     fFtData = [xAxisFFTData, yAxisFFTData, zAxisFFTData];
@@ -223,10 +210,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   var zoomOutPage;
-  void zoomOutChart(data,
-      {required String title,
-      required String xtitle,
-      required String ytitle}) {
+  void zoomOutChart(data, {required String title, required String xtitle, required String ytitle}) {
     zoomOutPage = ZoomOutPage(
       data: data,
       title: title,
@@ -246,7 +230,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   void fftZoomOut() {
-    zoomOutChart(fFtData,
-        title: "FFT", xtitle: "Freq(Hz)", ytitle: "Mag(G)");
+    zoomOutChart(fFtData, title: "FFT", xtitle: "Freq(Hz)", ytitle: "Mag(G)");
   }
 }
