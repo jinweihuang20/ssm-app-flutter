@@ -134,7 +134,15 @@ class _FeaturesPageState extends State<FeaturesPage> with AutomaticKeepAliveClie
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 40,
-        title: const Text('特徵值', style: const TextStyle()),
+        title: Row(
+          children: const [
+            Icon(Icons.waves_sharp),
+            Padding(
+              padding: EdgeInsets.only(left: 8.0),
+              child: Text('特徵值'),
+            ),
+          ],
+        ),
         actions: [
           OpenUnitSettingButton(
               pageName: "FeaturePage",
@@ -216,7 +224,7 @@ class _FeaturesPageState extends State<FeaturesPage> with AutomaticKeepAliveClie
                         ),
                         const Padding(padding: EdgeInsets.only(left: 10), child: Text('ISO 規範 : ')),
                         SizedBox(
-                            width: 160,
+                            width: 180,
                             child: DropdownButton(
                                 value: _isoSelect,
                                 style: const TextStyle(fontWeight: FontWeight.bold),

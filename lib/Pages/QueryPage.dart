@@ -60,14 +60,16 @@ class _QueryPage extends State<QueryPage> with AutomaticKeepAliveClientMixin {
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
         toolbarHeight: 40,
-        title: const Text('資料查詢', style: const TextStyle()),
-        actions: getActionWigetsList(),
-      ),
-      drawer: Drawer(
-        backgroundColor: Colors.black,
-        child: Column(
-          children: [Expanded(child: TextButton(onPressed: null, child: const Text('item1', style: const TextStyle())))],
+        title: Row(
+          children: const [
+            Icon(Icons.query_stats_outlined),
+            Padding(
+              padding: EdgeInsets.only(left: 8.0),
+              child: Text('資料查詢'),
+            ),
+          ],
         ),
+        actions: getActionWigetsList(),
       ),
       body: Column(
         mainAxisSize: MainAxisSize.max,

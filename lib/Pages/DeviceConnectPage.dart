@@ -34,7 +34,7 @@ class _DeviceConnectPageState extends State<DeviceConnectPage> with AutomaticKee
   SSMConnectState _ssmState = SSMConnectState(false, Module(ip: "127.0.0.1", port: 5000));
   DeviceWifiInfo wifiInfo = DeviceWifiInfo("ip", "ssid", "macAddress");
 
-  get widgetNor => Card(
+  get widgetNor => Container(
         color: Colors.green,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -193,7 +193,6 @@ class _DeviceConnectPageState extends State<DeviceConnectPage> with AutomaticKee
             ),
           ),
           titleWidget(text: "模組設定"),
-
           Card(
             color: const Color.fromARGB(255, 56, 55, 55),
             child: Column(
@@ -234,17 +233,21 @@ class _DeviceConnectPageState extends State<DeviceConnectPage> with AutomaticKee
               ],
             ),
           ),
-          // ElevatedButton(
-          //   onPressed: openQRCodeScanner,
-          //   child: const Text('qrView'),
-          // )
         ],
       ),
     );
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 40,
-        title: const Text('模組連線/設定', style: const TextStyle()),
+        title: Row(
+          children: const [
+            Icon(Icons.widgets_outlined),
+            Padding(
+              padding: EdgeInsets.only(left: 8.0),
+              child: Text('模組連線/設定'),
+            ),
+          ],
+        ),
         actions: [IconButton(onPressed: openQRCodeScanner, icon: const Icon(Icons.qr_code_scanner_sharp))],
       ),
       body: singleChildScrollView,
@@ -323,25 +326,23 @@ class _DeviceConnectPageState extends State<DeviceConnectPage> with AutomaticKee
     if (!connect) {
       _showConnectErrDialog();
     } else {
-      // Navigator.pushNamed((this.context), 'dataPage', arguments: ssmModule);
-      setState(() {
-        connected = true;
-        widget.ssmModuleOnConnect(_ssmState);
-      });
+      connected = true;
+      widget.ssmModuleOnConnect(_ssmState);
     }
+
+    setState(() {});
   }
 
   void _disconnect() {
     try {
       _ssmState.ssmModule.close();
       _ssmState = SSMConnectState(false, _ssmState.ssmModule);
-      setState(() {
-        connected = false;
-      });
+      connected = false;
       widget.ssmModuleOnConnect(_ssmState);
     } catch (e) {
       print(e);
     }
+    setState(() {});
   }
 
   void _showConnectingSpinner() async {
@@ -432,6 +433,7 @@ class _DeviceConnectPageState extends State<DeviceConnectPage> with AutomaticKee
   }
 
   void showWifiSelectDialog() async {
+    return;
     return showDialog(
         context: context,
         builder: (context) {

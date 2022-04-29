@@ -31,9 +31,8 @@ class _MainPageState extends State<MainPage> {
   List<PageState> pageStates = [];
   bool isSSMConnected = false;
   bool autoStartProcessDone = false;
-
   final _pageController = PageController(initialPage: 0);
-  final Color bottomNavSelectedIconColor = const Color.fromARGB(255, 65, 128, 211);
+  var bottomNavSelectedIconColor = Colors.blue;
   var appBarBackgroundColor = Colors.blue;
   Color bottomNavNotSelectedIconColor = Colors.white;
 
@@ -78,9 +77,10 @@ class _MainPageState extends State<MainPage> {
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      body: autoStartProcessDone ? pageView : loadingView,
+      body: pageView,
       bottomNavigationBar: SizedBox(
-        height: 70,
+        height: 78,
+        width: double.infinity,
         child: Padding(
           padding: const EdgeInsets.all(1.0),
           child: Card(
@@ -141,14 +141,15 @@ class _MainPageState extends State<MainPage> {
 
   ///要新增頁面的話就從這邊下手
   List<PageState> getPageStates() {
+    double iconSize = 30;
     List<PageState> ls = [];
     var homePageState = PageState(
         badgeState: MyBadgeState(showBadge: false),
         pageWidget: homePage,
-        title: '時/頻圖',
-        icon: const Icon(
-          Icons.data_thresholding_sharp,
-          size: 40,
+        title: 'HOME',
+        icon: Icon(
+          Icons.home,
+          size: iconSize,
         ),
         iconColor: bottomNavNotSelectedIconColor);
     ls.add(homePageState);
@@ -156,9 +157,9 @@ class _MainPageState extends State<MainPage> {
         pageWidget: featuresPage,
         title: '特徵值',
         // icon: ImageIcon(AssetImage('assets/icon/icon.png')),
-        icon: const Icon(
+        icon: Icon(
           Icons.featured_play_list,
-          size: 40,
+          size: iconSize,
         ),
         iconColor: bottomNavNotSelectedIconColor,
         badgeState: MyBadgeState(showBadge: false));
@@ -170,31 +171,31 @@ class _MainPageState extends State<MainPage> {
           connected: isSSMConnected,
         ),
         title: '模組連線/設定',
-        icon: const Icon(Icons.settings_ethernet, size: 40),
+        icon: Icon(Icons.settings_ethernet, size: iconSize),
         iconColor: bottomNavNotSelectedIconColor);
     ls.add(deviceConnPageState);
     var quertPage = PageState(
         badgeState: MyBadgeState(showBadge: false),
         pageWidget: QueryPage(),
         title: '資料查詢',
-        icon: const Icon(Icons.query_stats_outlined, size: 40),
+        icon: Icon(Icons.query_stats_outlined, size: iconSize),
         iconColor: bottomNavNotSelectedIconColor);
     ls.add(quertPage);
     ls.add(PageState(
         badgeState: MyBadgeState(showBadge: false),
         pageWidget: const SettingPage(),
         title: '系統設定',
-        icon: const Icon(Icons.settings, size: 40),
+        icon: Icon(Icons.settings, size: iconSize),
         iconColor: bottomNavNotSelectedIconColor));
 
-    if (kDebugMode) {
-      ls.add(PageState(
-          pageWidget: WidgetTestPage(),
-          title: 'Widget test',
-          icon: Icon(Icons.widgets, size: 40),
-          iconColor: bottomNavSelectedIconColor,
-          badgeState: MyBadgeState(showBadge: false)));
-    }
+    // if (kDebugMode) {
+    //   ls.add(PageState(
+    //       pageWidget: const WidgetTestPage(),
+    //       title: 'Widget test',
+    //       icon: Icon(Icons.widgets, size: iconSize),
+    //       iconColor: bottomNavSelectedIconColor,
+    //       badgeState: MyBadgeState(showBadge: false)));
+    // }
 
     return ls;
   }
@@ -204,22 +205,29 @@ class _MainPageState extends State<MainPage> {
     List<Widget> ls = [];
     List.generate(pageStates.length, (index) {
       var state = pageStates[index];
-      String title = state.title;
       dynamic icon = state.icon;
       Color iconColor = state.iconColor;
-      MyBadgeState badgeState = state.badgeState;
-      //action(index, state.title)
-      Widget widget = IconButton(
-          onPressed: () {
-            action(index, state.title);
-          },
-          splashRadius: 22,
-          padding: EdgeInsets.all(1),
-          color: iconColor,
-          icon: icon);
+      dynamic tets = ElevatedButton(
+        onPressed: () => {action(index, state.title)},
+        style: ElevatedButton.styleFrom(shape: const RoundedRectangleBorder(), onPrimary: iconColor, primary: Colors.transparent, shadowColor: Colors.transparent),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            icon,
+            Text(
+              state.title,
+              style: const TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+              ),
+            )
+          ],
+        ),
+      );
+
       ls.add(Padding(
         padding: const EdgeInsets.all(1.0),
-        child: widget,
+        child: tets,
       ));
     });
 

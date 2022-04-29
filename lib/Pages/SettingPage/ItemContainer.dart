@@ -18,7 +18,9 @@ class _ItemContainer extends State<ItemContainer> {
   Widget build(BuildContext context) {
     Color backgroundColor = User.setting.appTheme == 'light' ? Colors.grey : Colors.blueGrey.shade800;
     return Padding(
-      padding: EdgeInsets.only(top: 5),
+      padding: EdgeInsets.only(
+        top: 5,
+      ),
       child: Container(
         color: backgroundColor,
         padding: const EdgeInsets.only(left: 8, right: 9),

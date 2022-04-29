@@ -14,7 +14,7 @@ class SimpleLineChart extends StatefulWidget {
       this.showLegend = true,
       this.showTitle = true,
       this.useNumericEndPointsTickProviderSpec = false,
-      this.ledgenPosition = charts.BehaviorPosition.end,
+      this.ledgenPosition = charts.BehaviorPosition.inside,
       this.showZoomOutButton = false,
       this.zoomButtonOnClick,
       this.showISO = false})
@@ -51,7 +51,7 @@ class _SimpleLineChartState extends State<SimpleLineChart> with AutomaticKeepAli
     List<ChartBehavior<num>> titlesBehavios = [
       charts.SeriesLegend(position: widget.ledgenPosition, showMeasures: true),
       charts.ChartTitle(widget.showTitle ? widget.title : "",
-          behaviorPosition: BehaviorPosition.top, titleStyleSpec: const TextStyleSpec(color: charts.MaterialPalette.white, lineHeight: 1)),
+          outerPadding: 22, behaviorPosition: BehaviorPosition.top, titleStyleSpec: const TextStyleSpec(color: charts.MaterialPalette.white, lineHeight: 1)),
       charts.ChartTitle(widget.xAxistTitle,
           behaviorPosition: charts.BehaviorPosition.bottom, titleStyleSpec: const charts.TextStyleSpec(fontSize: 14, color: charts.MaterialPalette.white)),
       charts.ChartTitle(widget.yAxisTitle,
@@ -65,6 +65,7 @@ class _SimpleLineChartState extends State<SimpleLineChart> with AutomaticKeepAli
     behaviors.addAll(titlesBehavios);
 
     var chart = charts.LineChart(
+      // widget.dataSetList.isEmpty ? getDefual() : _genSeriesDataList(widget.dataSetList),
       widget.dataSetList.isEmpty ? getDefual() : _genSeriesDataList(widget.dataSetList),
       animate: false,
       behaviors: behaviors,
@@ -86,8 +87,12 @@ class _SimpleLineChartState extends State<SimpleLineChart> with AutomaticKeepAli
     );
     if (widget.showZoomOutButton) {
       return Center(
-        child: Stack(
-          children: [zoomWidget, chart],
+        child: Card(
+          color: Colors.transparent,
+          shape: RoundedRectangleBorder(),
+          child: Stack(
+            children: [zoomWidget, chart],
+          ),
         ),
       );
     } else {

@@ -32,7 +32,13 @@ class _SettingPage extends State<SettingPage> with AutomaticKeepAliveClientMixin
           ),
         ),
         ItemContainer(
-          children: [Text('版本號'), Text(appVersion)],
+          children: [
+            const Text('版本號'),
+            Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Text(appVersion),
+            )
+          ],
         ),
         const ItemTitle(
           text: '外觀與樣式',
@@ -89,7 +95,7 @@ class _SettingPage extends State<SettingPage> with AutomaticKeepAliveClientMixin
             ),
           ),
         ]),
-        ItemTitle(
+        const ItemTitle(
           text: 'Developer',
           icon: Icon(Icons.developer_mode),
         ),
@@ -100,7 +106,15 @@ class _SettingPage extends State<SettingPage> with AutomaticKeepAliveClientMixin
     );
     return Scaffold(
       appBar: AppBar(
-        title: const Text('系統設定'),
+        title: Row(
+          children: const [
+            Icon(Icons.settings),
+            Padding(
+              padding: EdgeInsets.only(left: 8.0),
+              child: Text('系統設定'),
+            ),
+          ],
+        ),
       ),
       body: column,
     );

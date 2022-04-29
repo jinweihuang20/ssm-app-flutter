@@ -7,7 +7,6 @@ import 'package:ssmflutter/Pages/ZoomOutShowPage.dart';
 import 'package:ssmflutter/SSMModule/FeatureDisplay.dart';
 import 'package:ssmflutter/SSMModule/Unit.dart';
 import 'package:ssmflutter/SSMModule/module.dart';
-import 'package:ssmflutter/SocialMediaShare/SocialMediaWidget.dart';
 import 'package:ssmflutter/Storage/FileSaveLocalHelper.dart';
 import 'package:ssmflutter/Widgets/openUnitSettingWidget.dart';
 import '../Database/SqliteAPI.dart' as db;
@@ -72,26 +71,86 @@ class _HomePageState extends State<HomePage> {
     _ssmMoudle.close();
   }
 
-  get accChart {
-    return SimpleLineChart(
-      title: '加速度',
-      dataSetList: accData,
-      xAxistTitle: "Index",
-      yAxisTitle: UnitSettingCache.homePageUnit.accUnitStr,
-      useNumericEndPointsTickProviderSpec: true,
-      showZoomOutButton: true,
-      zoomButtonOnClick: accZoomOut,
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        toolbarHeight: 40,
+        title: Row(
+          children: const [
+            Icon(Icons.home_sharp),
+            Padding(
+              padding: EdgeInsets.only(left: 8.0),
+              child: Text('Home'),
+            ),
+          ],
+        ),
+        actions: _homePageControlWidget,
+      ),
+      body: SizedBox.expand(
+        child: Column(
+          children: [
+            Expanded(
+              child: SimpleLineChart(
+                title: '加速度',
+                dataSetList: accData,
+                xAxistTitle: "Index",
+                yAxisTitle: UnitSettingCache.homePageUnit.accUnitStr,
+                useNumericEndPointsTickProviderSpec: true,
+                showZoomOutButton: true,
+                zoomButtonOnClick: accZoomOut,
+              ),
+            ),
+            divider(),
+            Expanded(
+              child: SimpleLineChart(
+                title: 'FFT',
+                dataSetList: fFtData,
+                xAxistTitle: "Freq(Hz)",
+                yAxisTitle: 'Mag(${UnitSettingCache.homePageUnit.accUnitStr})',
+                showZoomOutButton: true,
+                zoomButtonOnClick: fftZoomOut,
+              ),
+            ),
+            divider(),
+            Expanded(child: FeatureDisplay(features))
+          ],
+        ),
+      ),
     );
   }
 
-  get fftChart {
-    return SimpleLineChart(
-      title: 'FFT',
-      dataSetList: fFtData,
-      xAxistTitle: "Freq(Hz)",
-      yAxisTitle: 'Mag(${UnitSettingCache.homePageUnit.accUnitStr})',
-      showZoomOutButton: true,
-      zoomButtonOnClick: fftZoomOut,
+  Widget getTitleWiget(String text, Widget? widget) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Padding(
+            padding: const EdgeInsets.only(
+              left: 5,
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.data_thresholding_sharp),
+                Padding(
+                  padding: const EdgeInsets.only(left: 10),
+                  child: Text(
+                    text,
+                    style: const TextStyle(fontSize: 20, color: Colors.white),
+                  ),
+                )
+              ],
+            )),
+        widget ?? const Text('')
+      ],
+    );
+  }
+
+  Widget divider() {
+    return const Divider(
+      thickness: 1,
+      color: Color.fromARGB(255, 54, 54, 54),
+      indent: 12,
+      endIndent: 12,
     );
   }
 
@@ -164,66 +223,6 @@ class _HomePageState extends State<HomePage> {
         ],
       )
     ];
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        toolbarHeight: 40,
-        title: const Text("時/頻圖", style: const TextStyle()),
-        actions: _homePageControlWidget,
-      ),
-      body: SizedBox.expand(
-        child: Column(
-          children: [
-            Expanded(
-              child: accChart,
-            ),
-            divider(),
-            Expanded(
-              child: fftChart,
-            ),
-            divider(),
-            Expanded(child: FeatureDisplay(features))
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget getTitleWiget(String text, Widget? widget) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Padding(
-            padding: const EdgeInsets.only(
-              left: 5,
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.data_thresholding_sharp),
-                Padding(
-                  padding: const EdgeInsets.only(left: 10),
-                  child: Text(
-                    text,
-                    style: const TextStyle(fontSize: 20, color: Colors.white),
-                  ),
-                )
-              ],
-            )),
-        widget ?? const Text('')
-      ],
-    );
-  }
-
-  Widget divider() {
-    return const Divider(
-      thickness: 1,
-      color: Color.fromARGB(255, 255, 255, 255),
-      indent: 12,
-      endIndent: 12,
-    );
   }
 
   void _dataToSeriesDataOfChart(AccDataRevDoneEvent data) {
