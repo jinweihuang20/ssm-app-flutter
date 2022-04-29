@@ -1,8 +1,6 @@
 // ignore_for_file: avoid_print
-
 import 'package:flutter/material.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
-import 'package:ssmflutter/Chartslb/ISOPlugin.dart';
 import 'package:ssmflutter/Database/SensorData.dart';
 import 'package:ssmflutter/Storage/FileSaveLocalHelper.dart';
 import 'package:ssmflutter/SysSetting.dart';
@@ -61,9 +59,15 @@ class _QueryPage extends State<QueryPage> with AutomaticKeepAliveClientMixin {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
         toolbarHeight: 40,
+        title: const Text('資料查詢', style: const TextStyle()),
         actions: getActionWigetsList(),
+      ),
+      drawer: Drawer(
+        backgroundColor: Colors.black,
+        child: Column(
+          children: [Expanded(child: TextButton(onPressed: null, child: const Text('item1', style: const TextStyle())))],
+        ),
       ),
       body: Column(
         mainAxisSize: MainAxisSize.max,
@@ -217,8 +221,13 @@ class _QueryPage extends State<QueryPage> with AutomaticKeepAliveClientMixin {
   void saveData() {
     FileNameHelper.displayTextInputDialog(context, titleName: "物理量查詢數據下載").then((value) {
       saveQueryPageData("${FileNameHelper.fileName}.csv", accData, velData, disData).then((value) {
+        if (value == 'err') {
+          return;
+        }
         showSaveDoneDialog(context, filePath: value);
         print(value);
+      }).catchError((err) {
+        print(err);
       });
       print(FileNameHelper.fileName);
     });
@@ -262,23 +271,23 @@ List<List<TimeData>> getTimeDataList(sensorDataLs) {
     acc_x.timeList.add(time);
     acc_y.timeList.add(time);
     acc_z.timeList.add(time);
-    acc_x.values.add(sensorDataLs[index].acc_x_pp);
-    acc_y.values.add(sensorDataLs[index].acc_y_pp);
-    acc_z.values.add(sensorDataLs[index].acc_z_pp);
+    acc_x.values.add(sensorDataLs[index].accXPp);
+    acc_y.values.add(sensorDataLs[index].accYPp);
+    acc_z.values.add(sensorDataLs[index].accZPp);
 
     vel_x.timeList.add(time);
     vel_y.timeList.add(time);
     vel_z.timeList.add(time);
-    vel_x.values.add(sensorDataLs[index].vel_x_rms);
-    vel_y.values.add(sensorDataLs[index].vel_y_rms);
-    vel_z.values.add(sensorDataLs[index].vel_z_rms);
+    vel_x.values.add(sensorDataLs[index].velXRms);
+    vel_y.values.add(sensorDataLs[index].velYRms);
+    vel_z.values.add(sensorDataLs[index].velZRms);
 
     dis_x.timeList.add(time);
     dis_y.timeList.add(time);
     dis_z.timeList.add(time);
-    dis_x.values.add(sensorDataLs[index].dis_x_pp);
-    dis_y.values.add(sensorDataLs[index].dis_y_pp);
-    dis_z.values.add(sensorDataLs[index].dis_z_pp);
+    dis_x.values.add(sensorDataLs[index].disXpp);
+    dis_y.values.add(sensorDataLs[index].disYpp);
+    dis_z.values.add(sensorDataLs[index].disZpp);
   });
 
   return [

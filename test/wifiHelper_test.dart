@@ -3,6 +3,6 @@ import 'package:ssmflutter/Networks/WifiHelper.dart';
 
 void main() {
   test('init-Test', () async {
-    getSSID().then((value) => print(value));
+    getCurrentSSID().then((value) => print(value));
   });
 }

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class PageState {
   String title;
-  Icon icon;
+  dynamic icon;
   Widget pageWidget;
   Widget appBarWidget = const Text("");
   Color iconColor;

@@ -8,6 +8,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:ssmflutter/Chartslb/SimpleLineChart.dart';
 import 'package:ssmflutter/Chartslb/TimeLineChart.dart';
 import 'package:ssmflutter/SocialMediaShare/SocialMediaWidget.dart';
+import 'package:flutter_share/flutter_share.dart';
 
 Future<Directory> downloadsDirectory = DownloadsPathProvider.downloadsDirectory;
 
@@ -30,7 +31,7 @@ Future<String> saveFile(String fileNameWithExtension, String text) async {
     await file.writeAsString(text);
     return filePath;
   } catch (e) {
-    return e.toString();
+    return 'err';
   }
 }
 
@@ -87,8 +88,9 @@ class FileNameHelper {
 
   static TextEditingController _textFieldController = TextEditingController(text: "");
 
-  static Future<void> displayTextInputDialog(BuildContext context, {String titleName = ""}) async {
-    return showDialog(
+  static Future<String> displayTextInputDialog(BuildContext context, {String titleName = ""}) async {
+    String fileName = "";
+    await showDialog(
       barrierDismissible: false,
       barrierLabel: "???",
       context: context,
@@ -104,12 +106,14 @@ class FileNameHelper {
               child: const Text('CANCEL'),
               onPressed: () {
                 _textFieldController = TextEditingController(text: "");
-                Navigator.pop(context);
+                fileName = "";
+                Navigator.pop(context, 'cancel');
               },
             ),
             ElevatedButton(
               child: const Text('OK'),
               onPressed: () {
+                fileName = _textFieldController.text;
                 print(_textFieldController.text);
                 Navigator.pop(context);
               },
@@ -118,6 +122,7 @@ class FileNameHelper {
         );
       },
     );
+    return fileName;
   }
 }
 
@@ -137,7 +142,7 @@ Future<void> showSaveDoneDialog(BuildContext context, {String filePath = ""}) as
             )),
         contentPadding: const EdgeInsets.only(top: 20, right: 20, left: 20),
         content: SizedBox(
-          height: 130,
+          height: 110,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
@@ -145,8 +150,13 @@ Future<void> showSaveDoneDialog(BuildContext context, {String filePath = ""}) as
               const Divider(
                 thickness: 2,
               ),
-              const Text('分享給朋友'),
-              const SocialMediaShareWidget(),
+              TextButton.icon(
+                  onPressed: () {
+                    _share(filePath);
+                  },
+                  icon: const Icon(Icons.share),
+                  label: const Text('分享給朋友')),
+              // const SocialMediaShareWidget(),
             ],
           ),
         ),
@@ -166,5 +176,14 @@ Future<void> showSaveDoneDialog(BuildContext context, {String filePath = ""}) as
         ],
       );
     },
+  );
+}
+
+void _share(String filePath) async {
+  if (filePath == "") return;
+  await FlutterShare.shareFile(
+    title: 'Example share',
+    text: 'SSM Module Data Share.',
+    filePath: filePath,
   );
 }

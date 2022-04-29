@@ -2,6 +2,7 @@
 
 import 'package:charts_flutter/flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import '../Pages/SettingPage/ItemTitle.dart';
 import '../Pages/SettingPage/ItemContainer.dart';
@@ -18,10 +19,10 @@ class SettingPage extends StatefulWidget {
 class _SettingPage extends State<SettingPage> with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
-
+  String appVersion = "0.0.0.0";
   @override
   Widget build(BuildContext context) {
-    return Column(
+    var column = Column(
       children: [
         const ItemTitle(
           text: 'APP Information',
@@ -30,8 +31,8 @@ class _SettingPage extends State<SettingPage> with AutomaticKeepAliveClientMixin
             size: 17,
           ),
         ),
-        const ItemContainer(
-          children: [Text('版本號'), Text('BETA 0.0.1')],
+        ItemContainer(
+          children: [Text('版本號'), Text(appVersion)],
         ),
         const ItemTitle(
           text: '外觀與樣式',
@@ -97,6 +98,12 @@ class _SettingPage extends State<SettingPage> with AutomaticKeepAliveClientMixin
         )
       ],
     );
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('系統設定'),
+      ),
+      body: column,
+    );
   }
 
   var dataSaveDayTextFieldcontroller = TextEditingController(text: "2");
@@ -114,9 +121,13 @@ class _SettingPage extends State<SettingPage> with AutomaticKeepAliveClientMixin
   @override
   void initState() {
     index = 2134;
+
     super.initState();
-    API.getAPPSetting().then((settings) {
+    API.getAPPSetting().then((settings) async {
+      final appInfo = await PackageInfo.fromPlatform();
+      print(appInfo.toString());
       setState(() {
+        appVersion = appInfo.version;
         appTheme = settings.appTheme;
         _writeDataToDb = settings.saveDataToDB == 1;
         dataSaveDay = settings.dataKeepDay;
@@ -154,7 +165,7 @@ class _SettingPage extends State<SettingPage> with AutomaticKeepAliveClientMixin
     User.dataSaveDay = dataSaveDay;
   }
 
-  void showLandingPage() {
+  void showLandingPage() async {
     Navigator.pushNamed(context, '/landing', arguments: 'dev');
   }
 }

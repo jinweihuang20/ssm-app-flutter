@@ -1,10 +1,12 @@
+// ignore_for_file: no_logic_in_create_state, must_be_immutable, avoid_print
+
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:ssmflutter/Networks/WifiHelper.dart';
 import 'package:ssmflutter/SSMModule/MeasureRangeDropDownBtn.dart';
-import 'package:ssmflutter/SSMModule/emulator.dart' as ssm_emulator;
 import '../QRCode/QRSacnWidget.dart';
 import '../SSMModule/module.dart';
 import '../SysSetting.dart';
-import '../drawer.dart';
 
 class DeviceConnectPage extends StatefulWidget {
   DeviceConnectPage({Key? key, required this.ssmModuleOnConnect, this.ip = "127.0.0.1", this.port = 5000, this.connected = false}) : super(key: key);
@@ -13,24 +15,26 @@ class DeviceConnectPage extends StatefulWidget {
   final int port;
   final bool connected;
   final Function(SSMConnectState) ssmModuleOnConnect;
-  @override
   var state = _DeviceConnectPageState();
+
+  @override
   State<DeviceConnectPage> createState() => state;
 }
 
 class _DeviceConnectPageState extends State<DeviceConnectPage> with AutomaticKeepAliveClientMixin {
   static String _ipAddress = '192.168.0.68';
   static int _port = 5000;
-
   var _ipTextFieldController = TextEditingController(text: '192.168.0.68');
   var _portTextFieldController = TextEditingController(text: '5000');
   var stateWidget;
   var connectBtnText = "連線";
   var connectBtnBgColor = Colors.blue;
-  final TextStyle titleStyle = const TextStyle(fontSize: 18);
-  SSMConnectState _ssmState = SSMConnectState(false, Module(ip: "127.0.0.1", port: 5000));
+  final TextStyle titleStyle = const TextStyle(fontSize: 15, fontWeight: FontWeight.bold);
 
-  get widget_nor => Card(
+  SSMConnectState _ssmState = SSMConnectState(false, Module(ip: "127.0.0.1", port: 5000));
+  DeviceWifiInfo wifiInfo = DeviceWifiInfo("ip", "ssid", "macAddress");
+
+  get widgetNor => Card(
         color: Colors.green,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -50,8 +54,8 @@ class _DeviceConnectPageState extends State<DeviceConnectPage> with AutomaticKee
         ),
       );
 
-  get widget_abnor => Card(
-      color: Color.fromARGB(255, 177, 11, 2),
+  get widgetAbnor => Card(
+      color: const Color.fromARGB(255, 177, 11, 2),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: const [
@@ -74,11 +78,11 @@ class _DeviceConnectPageState extends State<DeviceConnectPage> with AutomaticKee
   set connected(connected) {
     _connected = connected;
     if (connected) {
-      stateWidget = widget_nor;
+      stateWidget = widgetNor;
       connectBtnText = 'Disconnect';
       connectBtnBgColor = Colors.red;
     } else {
-      stateWidget = widget_abnor;
+      stateWidget = widgetAbnor;
       connectBtnText = 'Connect';
       connectBtnBgColor = Colors.blue;
     }
@@ -89,6 +93,11 @@ class _DeviceConnectPageState extends State<DeviceConnectPage> with AutomaticKee
 
   @override
   void initState() {
+    getDeviceWifiInfo().then((value) {
+      setState(() {
+        wifiInfo = value!;
+      });
+    });
     User.loadSetting().then((value) {
       setState(() {
         _ipAddress = value.ssmIp;
@@ -104,7 +113,7 @@ class _DeviceConnectPageState extends State<DeviceConnectPage> with AutomaticKee
 
   @override
   Widget build(BuildContext context) {
-    return Center(
+    var singleChildScrollView = SingleChildScrollView(
       // Center is a layout widget. It takes a single child and positions it
       // in the middle of the parent.
       child: Column(
@@ -114,65 +123,83 @@ class _DeviceConnectPageState extends State<DeviceConnectPage> with AutomaticKee
             padding: const EdgeInsets.only(top: 10),
             child: stateWidget,
           ),
-          Padding(
-            padding: const EdgeInsets.only(top: 20, left: 10),
+          titleWidget(text: "連線"),
+          Card(
+            color: const Color.fromARGB(255, 56, 55, 55),
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  '模組連線',
-                  style: titleStyle,
+                TextField(
+                  controller: _ipTextFieldController,
+                  onChanged: (text) {
+                    setState(() {
+                      _ipAddress = text;
+                    });
+                  },
+                  keyboardType: TextInputType.phone,
+                  textInputAction: TextInputAction.next,
+                  decoration: InputDecoration(
+                      hintText: 'Ex:192.168.0.3',
+                      labelText: 'IP',
+                      border: const OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.numbers),
+                      suffixIcon: _ipTextFieldController.text.isEmpty
+                          ? null
+                          : IconButton(
+                              onPressed: () {
+                                _ipTextFieldController.clear();
+                                setState(() {});
+                              },
+                              icon: const Icon(Icons.clear))),
                 ),
+                const Divider(),
+                TextField(
+                  controller: _portTextFieldController,
+                  onChanged: (port) {
+                    setState(() {
+                      _port = int.parse(port);
+                    });
+                  },
+                  keyboardType: TextInputType.number,
+                  textInputAction: TextInputAction.done,
+                  decoration: InputDecoration(
+                      hintText: 'Ex:5000',
+                      labelText: 'Port',
+                      border: const OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.numbers_sharp),
+                      suffixIcon: _portTextFieldController.text.isEmpty
+                          ? null
+                          : IconButton(
+                              onPressed: () {
+                                _portTextFieldController.clear();
+                                setState(() {});
+                              },
+                              icon: const Icon(Icons.clear))),
+                ),
+                Padding(
+                    padding: const EdgeInsets.only(top: 10),
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: 40,
+                      child: TextButton.icon(
+                          style: ElevatedButton.styleFrom(primary: connectBtnBgColor, onPrimary: Colors.white),
+                          icon: const Icon(Icons.link),
+                          onPressed: _connected ? _disconnect : _menuItemClickedHandle,
+                          label: Text(
+                            connectBtnText,
+                          )),
+                    )),
               ],
             ),
           ),
-          TextField(
-            enabled: !widget.connected,
-            controller: _ipTextFieldController,
-            onChanged: (text) {
-              setState(() {
-                _ipAddress = text;
-              });
-            },
-            keyboardType: TextInputType.phone,
-            textInputAction: TextInputAction.next,
-            decoration: const InputDecoration(hintText: 'Ex:192.168.0.3', labelText: 'IP', icon: Icon(Icons.numbers)),
-          ),
-          TextField(
-            controller: _portTextFieldController,
-            enabled: !widget.connected,
-            onChanged: (port) {
-              setState(() {
-                _port = int.parse(port);
-              });
-            },
-            keyboardType: TextInputType.number,
-            textInputAction: TextInputAction.done,
-            decoration: const InputDecoration(hintText: 'Ex:5000', labelText: 'Port', icon: Icon(Icons.numbers_sharp)),
-          ),
-          Padding(
-              padding: EdgeInsets.only(top: 10),
-              child: SizedBox(
-                width: double.infinity,
-                height: 40,
-                child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      primary: connectBtnBgColor,
-                    ),
-                    onPressed: _connected ? _disconnect : _menuItemClickedHandle,
-                    child: Text(
-                      connectBtnText,
-                    )),
-              )),
-          const Divider(),
-          Padding(
-            padding: const EdgeInsets.only(top: 20, left: 10),
-            child: Text('模組設定', style: titleStyle),
-          ),
+          titleWidget(text: "模組設定"),
+
           Card(
+            color: const Color.fromARGB(255, 56, 55, 55),
             child: Column(
               children: [
                 Padding(
-                    padding: EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(10),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -184,13 +211,98 @@ class _DeviceConnectPageState extends State<DeviceConnectPage> with AutomaticKee
                     ))
               ],
             ),
-          )
+          ),
+          Row(
+            children: [
+              Expanded(child: titleWidget(text: "Wi-Fi Information")),
+              IconButton(
+                  onPressed: () {
+                    getDeviceWifiInfo().then((value) {
+                      setState(() {
+                        wifiInfo = value!;
+                      });
+                    });
+                  },
+                  icon: const Icon(Icons.refresh))
+            ],
+          ),
+          Card(
+            color: const Color.fromARGB(255, 56, 55, 55),
+            child: Column(
+              children: [
+                wifiInfoWidget(),
+              ],
+            ),
+          ),
           // ElevatedButton(
           //   onPressed: openQRCodeScanner,
           //   child: const Text('qrView'),
           // )
         ],
       ),
+    );
+    return Scaffold(
+      appBar: AppBar(
+        toolbarHeight: 40,
+        title: const Text('模組連線/設定', style: const TextStyle()),
+        actions: [IconButton(onPressed: openQRCodeScanner, icon: const Icon(Icons.qr_code_scanner_sharp))],
+      ),
+      body: singleChildScrollView,
+    );
+  }
+
+  Widget titleWidget({required String text}) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 20, left: 10),
+      child: Row(
+        children: [
+          Text(text, style: titleStyle),
+        ],
+      ),
+    );
+  }
+
+  Widget wifiInfoWidget() {
+    return SizedBox(
+        width: double.infinity,
+        child: Column(
+          children: [
+            wifiInfoItem(
+              name: "SSID",
+              icon: const Icon(Icons.text_format_rounded),
+              jsutText: false,
+              widget: TextButton(
+                onPressed: showWifiSelectDialog,
+                child: Text(wifiInfo.ssid),
+              ),
+            ),
+            const Divider(
+              indent: 10,
+            ),
+            wifiInfoItem(name: "Device IP", icon: const Icon(Icons.nine_mp_rounded), jsutText: true, text: wifiInfo.ip),
+            const Divider(
+              indent: 10,
+            ),
+            wifiInfoItem(name: "Mac Address", icon: const Icon(Icons.nine_mp_rounded), jsutText: true, text: wifiInfo.macAddress),
+          ],
+        ));
+  }
+
+  Widget wifiInfoItem({required String name, Icon icon = const Icon(Icons.info_rounded), bool jsutText = true, String text = "", Widget widget = const Text('data')}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        TextButton.icon(
+          onPressed: () {},
+          icon: icon,
+          label: Text(name),
+          style: ElevatedButton.styleFrom(onPrimary: Colors.white),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(right: 8.0),
+          child: jsutText ? Text(text) : widget,
+        ),
+      ],
     );
   }
 
@@ -199,11 +311,14 @@ class _DeviceConnectPageState extends State<DeviceConnectPage> with AutomaticKee
   void _menuItemClickedHandle() async {
     _showConnectingSpinner();
 
+    var oldIP = (await User.loadSetting()).ssmIp;
+
     User.ssmModule(_ipAddress, _port);
     Module? ssmModule = Module(ip: _ipAddress, port: _port);
     bool connect = await ssmModule.connect();
     await Future.delayed(const Duration(seconds: 1));
     _ssmState = SSMConnectState(connect, ssmModule);
+    _ssmState.isIPChange = oldIP != _ipAddress;
     Navigator.pop(context);
     if (!connect) {
       _showConnectErrDialog();
@@ -220,9 +335,13 @@ class _DeviceConnectPageState extends State<DeviceConnectPage> with AutomaticKee
     try {
       _ssmState.ssmModule.close();
       _ssmState = SSMConnectState(false, _ssmState.ssmModule);
-      connected = false;
+      setState(() {
+        connected = false;
+      });
       widget.ssmModuleOnConnect(_ssmState);
-    } catch (e) {}
+    } catch (e) {
+      print(e);
+    }
   }
 
   void _showConnectingSpinner() async {
@@ -243,6 +362,7 @@ class _DeviceConnectPageState extends State<DeviceConnectPage> with AutomaticKee
 
     showDialog(
         context: context,
+        barrierDismissible: false,
         builder: (BuildContext context) {
           return alertDialog;
         });
@@ -265,9 +385,9 @@ class _DeviceConnectPageState extends State<DeviceConnectPage> with AutomaticKee
                 ),
                 Padding(
                     padding: const EdgeInsets.only(left: 10),
-                    child: Wrap(alignment: WrapAlignment.spaceAround, children: [
-                      ElevatedButton(onPressed: () => {Navigator.of(this.context).pop(true), _menuItemClickedHandle()}, child: const Text('重試')),
-                      ElevatedButton(onPressed: () => {Navigator.of(this.context).pop(true)}, child: const Text('OK'))
+                    child: Row(children: [
+                      ElevatedButton(onPressed: () => {Navigator.of(context).pop(true), _menuItemClickedHandle()}, child: const Text('重試')),
+                      ElevatedButton(onPressed: () => {Navigator.of(context).pop(true)}, child: const Text('OK'))
                     ]))
               ],
             ))
@@ -275,10 +395,27 @@ class _DeviceConnectPageState extends State<DeviceConnectPage> with AutomaticKee
     );
 
     showDialog(
-        context: this.context,
+        context: context,
         builder: (BuildContext context) {
           return alertDialog;
         });
+  }
+
+  void openQRCodeScanner() {
+    var qrScanner = QRScanner(
+      // ssmMoudleQRCodeOnCapature: (s) => {},
+      ssmMoudleQRCodeOnCapature: ssmModuleQRCodeHandle,
+    );
+    Navigator.of(context)
+        .push(MaterialPageRoute(
+      builder: (context) => qrScanner,
+    ))
+        .then((value) {
+      // var str = ModalRoute.of(context)!.settings.arguments as String;
+      print('qr return : $value');
+
+      ssmModuleQRCodeHandle(value);
+    });
   }
 
   ssmModuleQRCodeHandle(String p1) {
@@ -286,26 +423,87 @@ class _DeviceConnectPageState extends State<DeviceConnectPage> with AutomaticKee
     String ssid = splited[1];
     String ip = splited[2];
     print('ssid:$ssid, ip : $ip');
-    //TODO Try Connect TO SSID
     User.ssmModule(ip, 5000);
     setState(() {
       _ipAddress = ip;
       _ipTextFieldController = TextEditingController(text: ip);
+      _connecToSSID(ssid: ssid);
     });
-    Navigator.pop(context);
   }
 
-  void openQRCodeScanner() {
-    Navigator.of(context).push(MaterialPageRoute(
-      builder: (context) => QRScanner(
-        ssmMoudleQRCodeOnCapature: ssmModuleQRCodeHandle,
-      ),
-    ));
+  void showWifiSelectDialog() async {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text('選擇 Wi-Fi'),
+            content: SizedBox(
+              height: 300,
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [],
+                ),
+              ),
+            ),
+            actions: [const ElevatedButton(onPressed: null, child: Text('OK'))],
+          );
+        });
+  }
+
+  var wifiConnectResultByQRConde = '';
+  void _connecToSSID({required String ssid, String? pw}) async {
+    wifiInfo.state = "Connecting";
+    showWifiConnectStateDialog();
+
+    connectToSSSID(ssid, pw).then((currentWifiInfo) async {
+      print('wifi-connect : ${currentWifiInfo.toJson()}  ');
+      setState(() {
+        wifiInfo = currentWifiInfo;
+        wifiInfo.state = "Finish";
+      });
+
+      await Future.delayed(const Duration(seconds: 3));
+      Navigator.pop(context);
+      showWifiConnectStateDialog();
+
+      if (wifiInfo.connected) {
+        Navigator.pop(context);
+        if (_connected) _disconnect();
+        _menuItemClickedHandle();
+      }
+    });
+  }
+
+  Future<void> showWifiConnectStateDialog() async {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Row(
+              children: const [
+                Icon(Icons.wifi),
+                Padding(
+                  padding: EdgeInsets.only(left: 8.0),
+                  child: Text('WIFI連線'),
+                )
+              ],
+            ),
+            content: Row(
+              children: [
+                const CircularProgressIndicator(
+                  color: Colors.white,
+                ),
+                Text('Connect to ${wifiInfo.ssid} ..${wifiInfo.state}'),
+              ],
+            ),
+          );
+        });
   }
 }
 
 class SSMConnectState {
   final bool connected;
   final Module ssmModule;
+  bool isIPChange = false;
   SSMConnectState(this.connected, this.ssmModule);
 }

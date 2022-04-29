@@ -1,9 +1,11 @@
 // ignore_for_file: file_names, avoid_print
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:ssmflutter/Networks/WifiHelper.dart';
 import 'package:ssmflutter/Pages/FeaturesPage.dart';
 import 'package:ssmflutter/Pages/HomePage.dart';
+import 'package:ssmflutter/Pages/WidgetTestPage.dart';
 import 'package:ssmflutter/Router/Routers.dart';
 import 'package:badges/badges.dart';
 import 'package:ssmflutter/SSMModule/module.dart';
@@ -21,52 +23,146 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
-  String title = "HOME";
+  String title = "";
   HomePage homePage = HomePage();
   FeaturesPage featuresPage = FeaturesPage();
   double bottomNaveIconSize = 30;
   Widget appBarRightWidget = const Text('');
   List<PageState> pageStates = [];
   bool isSSMConnected = false;
+  bool autoStartProcessDone = false;
+
   final _pageController = PageController(initialPage: 0);
   final Color bottomNavSelectedIconColor = const Color.fromARGB(255, 65, 128, 211);
   var appBarBackgroundColor = Colors.blue;
   Color bottomNavNotSelectedIconColor = Colors.white;
-  bool _homePagePauseFlag = false;
-  get _homePageControlWidget {
-    return ButtonBar(
-      alignment: MainAxisAlignment.center,
-      children: [
-        IconButton(onPressed: () => {homePage.state.saveAccDataToMachine()}, icon: const Icon(Icons.save)),
-        IconButton(padding: const EdgeInsets.all(1), onPressed: _homePagePauseFlag ? null : _homePagePause, icon: const Icon(Icons.pause_circle_outline)),
-        IconButton(onPressed: !_homePagePauseFlag ? null : _homePageResume, icon: const Icon(Icons.play_arrow))
-      ],
+
+  @override
+  void initState() {
+    super.initState();
+    emulator.start('127.0.0.1', 5000);
+    User.loadSetting().then((value) async {
+      await tryConnectToSSM(value);
+      setState(() {
+        bottomNavNotSelectedIconColor = User.setting.appTheme == 'dark' ? Colors.white : Colors.black54;
+        pageStates = getPageStates();
+        _renderUI(0);
+        getDeviceWifiInfo().then((value) => print(value?.toJson()));
+      });
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    PageView pageView = PageView(
+      controller: _pageController,
+      children: _getPageWidgets(),
+      onPageChanged: _renderUI,
     );
+
+    Widget loadingView = Center(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: const [
+          CircularProgressIndicator(),
+          Padding(
+            padding: EdgeInsets.only(left: 18.0),
+            child: Text(
+              'Loading...',
+              style: TextStyle(fontSize: 24, letterSpacing: 5),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    return Scaffold(
+      resizeToAvoidBottomInset: false,
+      body: autoStartProcessDone ? pageView : loadingView,
+      bottomNavigationBar: SizedBox(
+        height: 70,
+        child: Padding(
+          padding: const EdgeInsets.all(1.0),
+          child: Card(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: _getBottomNavBar(),
+              ),
+            ),
+          ),
+        ),
+      ),
+      // persistentFooterButtons: _getBottomNavBar(),
+    );
+  }
+
+  Module ssmModule = Module(ip: '192.168.0.68', port: 5000);
+  Future<void> tryConnectToSSM(SysSetting settings) async {
+    ///
+    ssmModule = Module(ip: settings.ssmIp, port: settings.ssmPort);
+    bool connect = await ssmModule.connect();
+    print('ssm init connect :$connect');
+    setState(() {
+      isSSMConnected = connect;
+      if (connect) {
+        homePage.state.ssmModule = ssmModule;
+        featuresPage.state.ssmModule = ssmModule;
+      }
+      autoStartProcessDone = true;
+    });
+    print('ssm init connect :$isSSMConnected');
+  }
+
+  connectedFromDeviceConnecPage(SSMConnectState state) {
+    try {
+      ssmModule.close();
+    } catch (e) {}
+    setState(() {
+      isSSMConnected = state.connected;
+      if (state.connected) {
+        featuresPage.state.ssmModule = state.ssmModule;
+        homePage.state.ssmModule = state.ssmModule;
+      }
+      if (state.isIPChange) {
+        featuresPage.state.clearData();
+      }
+    });
+  }
+
+  void action(int index, String title) {
+    _pageController.jumpToPage(index);
+    setState(() {
+      title = title;
+      _renderUI(index);
+    });
   }
 
   ///要新增頁面的話就從這邊下手
   List<PageState> getPageStates() {
     List<PageState> ls = [];
-
     var homePageState = PageState(
         badgeState: MyBadgeState(showBadge: false),
         pageWidget: homePage,
         title: '時/頻圖',
-        icon: const Icon(Icons.data_thresholding_sharp),
+        icon: const Icon(
+          Icons.data_thresholding_sharp,
+          size: 40,
+        ),
         iconColor: bottomNavNotSelectedIconColor);
-
-    homePageState.appBarWidget = _homePageControlWidget;
     ls.add(homePageState);
-
     var featurePageState = PageState(
         pageWidget: featuresPage,
         title: '特徵值',
-        icon: const Icon(Icons.featured_play_list),
+        // icon: ImageIcon(AssetImage('assets/icon/icon.png')),
+        icon: const Icon(
+          Icons.featured_play_list,
+          size: 40,
+        ),
         iconColor: bottomNavNotSelectedIconColor,
         badgeState: MyBadgeState(showBadge: false));
-
     ls.add(featurePageState);
-
     var deviceConnPageState = PageState(
         badgeState: MyBadgeState(showBadge: !isSSMConnected),
         pageWidget: DeviceConnectPage(
@@ -74,25 +170,31 @@ class _MainPageState extends State<MainPage> {
           connected: isSSMConnected,
         ),
         title: '模組連線/設定',
-        icon: const Icon(Icons.settings_ethernet),
+        icon: const Icon(Icons.settings_ethernet, size: 40),
         iconColor: bottomNavNotSelectedIconColor);
-    deviceConnPageState.appBarWidget = IconButton(onPressed: opQRCodeSacnner, icon: const Icon(Icons.qr_code_scanner_sharp));
     ls.add(deviceConnPageState);
-
     var quertPage = PageState(
         badgeState: MyBadgeState(showBadge: false),
         pageWidget: QueryPage(),
         title: '資料查詢',
-        icon: const Icon(Icons.query_stats_outlined),
+        icon: const Icon(Icons.query_stats_outlined, size: 40),
         iconColor: bottomNavNotSelectedIconColor);
-
     ls.add(quertPage);
     ls.add(PageState(
         badgeState: MyBadgeState(showBadge: false),
         pageWidget: const SettingPage(),
         title: '系統設定',
-        icon: const Icon(Icons.settings),
+        icon: const Icon(Icons.settings, size: 40),
         iconColor: bottomNavNotSelectedIconColor));
+
+    if (kDebugMode) {
+      ls.add(PageState(
+          pageWidget: WidgetTestPage(),
+          title: 'Widget test',
+          icon: Icon(Icons.widgets, size: 40),
+          iconColor: bottomNavSelectedIconColor,
+          badgeState: MyBadgeState(showBadge: false)));
+    }
 
     return ls;
   }
@@ -103,40 +205,29 @@ class _MainPageState extends State<MainPage> {
     List.generate(pageStates.length, (index) {
       var state = pageStates[index];
       String title = state.title;
-      Icon icon = state.icon;
+      dynamic icon = state.icon;
       Color iconColor = state.iconColor;
       MyBadgeState badgeState = state.badgeState;
-      Widget widget = Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Badge(
-            showBadge: badgeState.showBadge,
-            child: IconButton(
-                constraints: const BoxConstraints(maxHeight: 20),
-                padding: const EdgeInsets.all(1),
-                onPressed: () {
-                  action(index, state.title);
-                },
-                icon: icon,
-                color: iconColor,
-                iconSize: bottomNaveIconSize),
-          ),
-          TextButton(
-            child: Text(title),
-            style: ElevatedButton.styleFrom(onSurface: Colors.transparent, onPrimary: iconColor, enableFeedback: false),
-            onPressed: () => action(index, state.title),
-          )
-        ],
-      );
-
-      ls.add(widget);
+      //action(index, state.title)
+      Widget widget = IconButton(
+          onPressed: () {
+            action(index, state.title);
+          },
+          splashRadius: 22,
+          padding: EdgeInsets.all(1),
+          color: iconColor,
+          icon: icon);
+      ls.add(Padding(
+        padding: const EdgeInsets.all(1.0),
+        child: widget,
+      ));
     });
 
     return <Widget>[
       Padding(
           padding: const EdgeInsets.all(1),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: ls,
           ))
     ];
@@ -151,9 +242,8 @@ class _MainPageState extends State<MainPage> {
       PageState pageState = pageStates[activeIndex];
       pageState.iconColor = bottomNavSelectedIconColor;
       appBarRightWidget = pageState.appBarWidget;
-      User.loadSetting().then((value) {
-        title = pageState.title + "(${value.ssmIp})";
-      });
+
+      title = pageState.title;
 
       ///
       if (activeIndex == 2) {
@@ -169,106 +259,5 @@ class _MainPageState extends State<MainPage> {
     List<Widget> ls = [];
     List.generate(pageStates.length, (index) => {ls.add(pageStates[index].pageWidget)});
     return ls;
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    emulator.start('127.0.0.1', 5000);
-    User.loadSetting().then((value) async {
-      await tryConnectToSSM(value);
-      setState(() {
-        bottomNavNotSelectedIconColor = User.setting.appTheme == 'dark' ? Colors.white : Colors.black54;
-
-        pageStates = getPageStates();
-        _renderUI(0);
-        getSSID().then((value) => print(value));
-      });
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      resizeToAvoidBottomInset: false,
-      appBar: AppBar(
-        actions: [appBarRightWidget],
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [Text(title)],
-        ),
-        automaticallyImplyLeading: false, //隱藏返回按鈕
-      ),
-      body: PageView(
-        controller: _pageController,
-        children: _getPageWidgets(),
-        onPageChanged: _renderUI,
-      ),
-      persistentFooterButtons: _getBottomNavBar(),
-    );
-  }
-
-  Module ssmModule = Module(ip: '192.168.0.68', port: 5000);
-  Future<void> tryConnectToSSM(SysSetting settings) async {
-    ///
-    ssmModule = Module(ip: settings.ssmIp, port: settings.ssmPort);
-
-    bool connect = await ssmModule.connect();
-    print('ssm init connect :$connect');
-    setState(() {
-      isSSMConnected = connect;
-      if (connect) {
-        homePage.state.ssmModule = ssmModule;
-        featuresPage.state.ssmModule = ssmModule;
-      }
-    });
-    print('ssm init connect :$isSSMConnected');
-  }
-
-  connectedFromDeviceConnecPage(SSMConnectState state) {
-    try {
-      ssmModule.close();
-    } catch (e) {}
-    setState(() {
-      isSSMConnected = state.connected;
-      pageStates = getPageStates();
-      _renderUI(2);
-      if (state.connected) {
-        featuresPage.state.ssmModule = state.ssmModule;
-        homePage.state.ssmModule = state.ssmModule;
-      }
-    });
-  }
-
-  void _homePagePause() {
-    setState(() {
-      _homePagePauseFlag = true;
-      (pageStates[0].pageWidget as HomePage).state.pause();
-      _updateAppBarOfHomePage();
-    });
-  }
-
-  void _homePageResume() {
-    setState(() {
-      _homePagePauseFlag = false;
-      (pageStates[0].pageWidget as HomePage).state.resume();
-      _updateAppBarOfHomePage();
-    });
-  }
-
-  void _updateAppBarOfHomePage() {
-    appBarRightWidget = _homePageControlWidget;
-  }
-
-  void opQRCodeSacnner() {
-    (pageStates[1].pageWidget as DeviceConnectPage).state.openQRCodeScanner();
-  }
-
-  void action(int index, String title) {
-    _pageController.jumpToPage(index);
-    setState(() {
-      title = title;
-      _renderUI(index);
-    });
   }
 }

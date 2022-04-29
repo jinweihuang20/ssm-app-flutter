@@ -1,9 +1,7 @@
-// ignore_for_file: avoid_print
-
+// ignore_for_file: avoid_print, empty_catches
 import 'dart:io';
 import 'dart:math' as math;
 import "dart:typed_data";
-
 import 'package:flutter/material.dart';
 
 class Emulator {
@@ -38,15 +36,15 @@ Future<List<int>> fakeData() async {
   List<int> y = sineWave(1200);
   List<int> z = sineWave(2000);
   for (var i = 0; i < 512; i++) {
-    var bytes_x = intToBytes(x[i]);
-    var bytes_y = intToBytes(y[i]);
-    var bytes_z = intToBytes(z[i]);
-    int lowx = bytes_x[0];
-    int highx = bytes_x[1];
-    int lowy = bytes_y[0];
-    int highy = bytes_y[1];
-    int lowz = bytes_z[0];
-    int highz = bytes_z[1];
+    var bytesX = intToBytes(x[i]);
+    var bytesY = intToBytes(y[i]);
+    var bytesZ = intToBytes(z[i]);
+    int lowx = bytesX[0];
+    int highx = bytesX[1];
+    int lowy = bytesY[0];
+    int highy = bytesY[1];
+    int lowz = bytesZ[0];
+    int highz = bytesZ[1];
 
     ls[i] = lowx;
     ls[i + 512] = highx;
@@ -78,8 +76,8 @@ List<int> intToBytes(int value) {
 
 double _sinPt(int number, freq) {
   var sampleFreq = 8000.0 / freq;
-  var noise = 100 * math.Random().nextDouble();
-  return noise + 700 * math.sin(number / (sampleFreq / (math.pi * 2)));
+  var noise = 10000 * math.Random().nextDouble();
+  return noise + 32700 * math.sin(number / (sampleFreq / (math.pi * 2)));
 }
 
 void restart() {

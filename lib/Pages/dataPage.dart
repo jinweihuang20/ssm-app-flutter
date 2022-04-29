@@ -76,7 +76,7 @@ class _DataPageState extends State<DataPage> {
   ];
 
   var accSeries = getAccRawSeries([], [], []);
-  var fftSeries = GetFFTSeries([], [], [], 8000);
+  var fftSeries = getFFTSeries([], [], [], 8000);
   Features features = Features();
 
   get revAccDataLen_X {
@@ -310,7 +310,7 @@ class _DataPageState extends State<DataPage> {
         )
       ];
       accSeries = getAccRawSeries(accX, accY, accZ);
-      fftSeries = GetFFTSeries(data.fftData_X, data.fftData_Y, data.fftData_Z, 8000);
+      fftSeries = getFFTSeries(data.fftData_X, data.fftData_Y, data.fftData_Z, 8000);
     });
   }
 

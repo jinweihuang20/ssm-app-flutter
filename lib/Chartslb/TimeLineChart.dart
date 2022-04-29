@@ -12,8 +12,7 @@ class TimeLineChart extends StatefulWidget {
       this.yAxisTitle = "Y-Title",
       required this.dataSetList,
       this.showLegend = true,
-      this.chartISOProperty =
-          const ChartISOProperty(showIso: false, isoType: 1)})
+      this.chartISOProperty = const ChartISOProperty(showIso: false, isoType: 1)})
       : super(key: key);
   final String title;
   final String yAxisTitle;
@@ -33,49 +32,31 @@ class _TimeLineChartState extends State<TimeLineChart> {
       showAxisLine: true,
       tickProviderSpec: const NumericEndPointsTickProviderSpec(),
       renderSpec: charts.GridlineRendererSpec(
-          labelStyle: const charts.TextStyleSpec(
-              fontSize: 10, color: charts.MaterialPalette.white),
-          axisLineStyle: LineStyleSpec(
-              thickness: 1,
-              color: charts.MaterialPalette.gray.shadeDefault),
-          lineStyle: charts.LineStyleSpec(
-              thickness: 0,
-              color: charts.MaterialPalette.gray.shadeDefault)));
+          labelStyle: const charts.TextStyleSpec(fontSize: 10, color: charts.MaterialPalette.white),
+          axisLineStyle: LineStyleSpec(thickness: 1, color: charts.MaterialPalette.gray.shadeDefault),
+          lineStyle: charts.LineStyleSpec(thickness: 0, color: charts.MaterialPalette.gray.shadeDefault)));
 
   var axisTime = const charts.DateTimeAxisSpec(
       showAxisLine: true,
       tickProviderSpec: DateTimeEndPointsTickProviderSpec(),
       renderSpec: charts.GridlineRendererSpec(
-          labelStyle: charts.TextStyleSpec(
-              fontSize: 10, color: charts.MaterialPalette.white),
-          axisLineStyle: LineStyleSpec(
-              thickness: 1, color: charts.MaterialPalette.white),
-          lineStyle: charts.LineStyleSpec(
-              thickness: 1, color: charts.MaterialPalette.white)));
+          labelStyle: charts.TextStyleSpec(fontSize: 10, color: charts.MaterialPalette.white),
+          axisLineStyle: LineStyleSpec(thickness: 1, color: charts.MaterialPalette.white),
+          lineStyle: charts.LineStyleSpec(thickness: 1, color: charts.MaterialPalette.white)));
 
   List<ChartBehavior<DateTime>> _creatBehaviors() {
     List<ChartBehavior<DateTime>> behaviors = [];
     List<ChartBehavior<DateTime>> titlesBehavios = [
-      charts.SeriesLegend(
-          position: charts.BehaviorPosition.bottom,
-          showMeasures: true),
-      charts.ChartTitle(widget.title,
-          behaviorPosition: BehaviorPosition.top,
-          titleStyleSpec: const TextStyleSpec(
-              color: charts.MaterialPalette.white)),
+      charts.SeriesLegend(position: charts.BehaviorPosition.bottom, showMeasures: true),
+      charts.ChartTitle(widget.title, behaviorPosition: BehaviorPosition.top, titleStyleSpec: const TextStyleSpec(color: charts.MaterialPalette.white)),
       charts.ChartTitle('Time',
-          behaviorPosition: charts.BehaviorPosition.bottom,
-          titleStyleSpec: const charts.TextStyleSpec(
-              fontSize: 14, color: charts.MaterialPalette.white)),
+          behaviorPosition: charts.BehaviorPosition.bottom, titleStyleSpec: const charts.TextStyleSpec(fontSize: 14, color: charts.MaterialPalette.white)),
       charts.ChartTitle(widget.yAxisTitle,
-          behaviorPosition: charts.BehaviorPosition.start,
-          titleStyleSpec: const charts.TextStyleSpec(
-              fontSize: 14, color: charts.MaterialPalette.white)),
+          behaviorPosition: charts.BehaviorPosition.start, titleStyleSpec: const charts.TextStyleSpec(fontSize: 14, color: charts.MaterialPalette.white)),
     ];
 
     if (widget.chartISOProperty.showIso) {
-      behaviors.add(iSORangeAnnotationForDateTimeAxis(
-          widget.chartISOProperty.isoType));
+      behaviors.add(iSORangeAnnotationForDateTimeAxis(widget.chartISOProperty.isoType));
     }
     behaviors.addAll(titlesBehavios);
 
@@ -86,9 +67,7 @@ class _TimeLineChartState extends State<TimeLineChart> {
   Widget build(BuildContext context) {
     return Center(
       child: charts.TimeSeriesChart(
-        widget.dataSetList.isEmpty
-            ? getDefual()
-            : _genSeriesDataList(widget.dataSetList),
+        widget.dataSetList.isEmpty ? getDefual() : _genSeriesDataList(widget.dataSetList),
         animate: false,
         behaviors: _creatBehaviors(),
         domainAxis: axisTime,
@@ -106,21 +85,9 @@ class _TimeLineChartState extends State<TimeLineChart> {
       values.add(Random().nextDouble());
     }
 
-    TimeData s1Data = TimeData(
-        name: 'X',
-        timeList: timeList,
-        values: values,
-        color: MaterialPalette.blue.shadeDefault);
-    TimeData s2Data = TimeData(
-        name: 'Y',
-        timeList: timeList,
-        values: values,
-        color: MaterialPalette.red.shadeDefault);
-    TimeData s3Data = TimeData(
-        name: 'Z',
-        timeList: timeList,
-        values: values,
-        color: MaterialPalette.yellow.shadeDefault);
+    TimeData s1Data = TimeData(name: 'X', timeList: timeList, values: values, color: MaterialPalette.blue.shadeDefault);
+    TimeData s2Data = TimeData(name: 'Y', timeList: timeList, values: values, color: MaterialPalette.red.shadeDefault);
+    TimeData s3Data = TimeData(name: 'Z', timeList: timeList, values: values, color: MaterialPalette.yellow.shadeDefault);
 
     return _genSeriesDataList([s1Data, s2Data, s3Data]);
   }
@@ -132,33 +99,20 @@ class TimeData {
   List<DateTime> timeList;
   List<double> values;
   Color color;
-  TimeData(
-      {required this.name,
-      required this.timeList,
-      required this.values,
-      required this.color});
+  TimeData({required this.name, required this.timeList, required this.values, required this.color});
 }
 
-List<Series<TimeSeriesPt, DateTime>> _genSeriesDataList(
-    List<TimeData> userDataSetList) {
+List<Series<TimeSeriesPt, DateTime>> _genSeriesDataList(List<TimeData> userDataSetList) {
   List<Series<TimeSeriesPt, DateTime>> seriesList = [];
 
-  List.generate(
-      userDataSetList.length,
-      (index) =>
-          {seriesList.add(_genSeriesData(userDataSetList[index]))});
+  List.generate(userDataSetList.length, (index) => {seriesList.add(_genSeriesData(userDataSetList[index]))});
 
   return seriesList;
 }
 
 Series<TimeSeriesPt, DateTime> _genSeriesData(TimeData userData) {
   List<TimeSeriesPt> ptList = [];
-  List.generate(
-      userData.timeList.length,
-      (index) => {
-            ptList.add(TimeSeriesPt(userData.timeList[index],
-                userData.values[index], userData.color))
-          });
+  List.generate(userData.timeList.length, (index) => {ptList.add(TimeSeriesPt(userData.timeList[index], userData.values[index], userData.color))});
 
   Series<TimeSeriesPt, DateTime> series = Series(
       id: userData.name,

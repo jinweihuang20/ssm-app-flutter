@@ -1,5 +1,7 @@
 // ignore_for_file: avoid_print
 
+import 'dart:math';
+
 import 'package:charts_flutter/flutter.dart';
 import 'package:flutter/material.dart';
 import 'Pages/SettingPage.dart';
