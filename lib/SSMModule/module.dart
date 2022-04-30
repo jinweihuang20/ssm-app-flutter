@@ -6,6 +6,8 @@ import 'dart:typed_data';
 import 'package:ssmflutter/MathLib/FeatureCalculator.dart';
 
 class Module {
+  DateTime dataUpdateTime = DateTime(0);
+
   Module({required this.ip, required this.port});
   final String ip;
   final int port;
@@ -20,14 +22,11 @@ class Module {
   List<int> accDataBuffer = [];
   Socket? _ssmSocket;
 
-  StreamController<AccDataRevDoneEvent> changeController =
-      StreamController<AccDataRevDoneEvent>();
+  StreamController<AccDataRevDoneEvent> changeController = StreamController<AccDataRevDoneEvent>();
   Stream<AccDataRevDoneEvent> get accDataOnChange => changeController.stream;
 
-  StreamController<FeatureDataRevData> featureDataController =
-      StreamController<FeatureDataRevData>();
-  Stream<FeatureDataRevData> get featureDataOnChange =>
-      featureDataController.stream;
+  StreamController<FeatureDataRevData> featureDataController = StreamController<FeatureDataRevData>();
+  Stream<FeatureDataRevData> get featureDataOnChange => featureDataController.stream;
 
   get accDataByteRevNum {
     return accDataBuffer.length;
@@ -47,8 +46,7 @@ class Module {
 
   Future<bool> connect() async {
     try {
-      _ssmSocket =
-          await Socket.connect(ip, port, timeout: const Duration(seconds: 3));
+      _ssmSocket = await Socket.connect(ip, port, timeout: const Duration(seconds: 3));
       print('socket open');
       _ssmSocket?.listen((packet) {
         connected = true;
@@ -100,9 +98,10 @@ class Module {
         features.dis_z_pp = toP2P(dis_z);
 
         featureDataController.add(FeatureDataRevData(features));
-        changeController.add(AccDataRevDoneEvent(
-            data[0], data[1], data[2], fft_x, fft_y, fft_z, features));
+        changeController.add(AccDataRevDoneEvent(data[0], data[1], data[2], fft_x, fft_y, fft_z, features));
         accDataBuffer.clear();
+
+        dataUpdateTime = DateTime.now();
 
         int sec = ip == "127.0.0.1" ? 1 : 0;
         // ignore: unused_local_variable
@@ -130,12 +129,9 @@ class Module {
     List<double> accZ = [];
     int lsb = param.lsb;
     for (var i = 0; i < 512; i++) {
-      var dx =
-          toInt16([accDataBuffer[512 * 1 + i], accDataBuffer[512 * 0 + i]]);
-      var dy =
-          toInt16([accDataBuffer[512 * 3 + i], accDataBuffer[512 * 2 + i]]);
-      var dz =
-          toInt16([accDataBuffer[512 * 5 + i], accDataBuffer[512 * 4 + i]]);
+      var dx = toInt16([accDataBuffer[512 * 1 + i], accDataBuffer[512 * 0 + i]]);
+      var dy = toInt16([accDataBuffer[512 * 3 + i], accDataBuffer[512 * 2 + i]]);
+      var dz = toInt16([accDataBuffer[512 * 5 + i], accDataBuffer[512 * 4 + i]]);
       accX.add(dx / lsb);
       accY.add(dy / lsb);
       accZ.add(dz / lsb);
@@ -209,8 +205,7 @@ class AccDataRevDoneEvent {
   List<double> fftData_Y = [];
   List<double> fftData_Z = [];
   Features features = Features();
-  AccDataRevDoneEvent(this.accData_X, this.accData_Y, this.accData_Z,
-      this.fftData_X, this.fftData_Y, this.fftData_Z, this.features);
+  AccDataRevDoneEvent(this.accData_X, this.accData_Y, this.accData_Z, this.fftData_X, this.fftData_Y, this.fftData_Z, this.features);
 }
 
 class FeatureDataRevData {

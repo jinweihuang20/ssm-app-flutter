@@ -3,6 +3,7 @@ import 'package:charts_flutter/flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:ssmflutter/Chartslb/ISOPlugin.dart';
+import 'package:ssmflutter/MyWidget/inheiedWigetTest.dart';
 
 class SimpleLineChart extends StatefulWidget {
   const SimpleLineChart(
@@ -85,6 +86,9 @@ class _SimpleLineChartState extends State<SimpleLineChart> with AutomaticKeepAli
             ))
       ],
     );
+
+    var module = ShareDataWidget.of(context)?.module;
+    setState(() {});
     if (widget.showZoomOutButton) {
       return Center(
         child: Card(
@@ -98,6 +102,11 @@ class _SimpleLineChartState extends State<SimpleLineChart> with AutomaticKeepAli
     } else {
       return chart;
     }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
   }
 }
 

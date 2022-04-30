@@ -23,7 +23,7 @@ class _FeatureDisplayState extends State<FeatureDisplay> {
           children: [
             const Text(
               '特徵值',
-              style: const TextStyle(fontSize: 15),
+              style: TextStyle(fontSize: 15),
             ),
             FeatureCard(
                 featureName: 'OA',
