@@ -10,6 +10,7 @@ import 'package:charts_flutter/flutter.dart' as charts;
 import '../SSMModule/Unit.dart';
 import '../SSMModule/module.dart';
 import '../Storage/Caches.dart';
+import 'MainPage.dart';
 
 enum SHOW_FE_NAME { oa, acc, vel, dis }
 
@@ -417,6 +418,10 @@ class _FeaturesPageState extends State<FeaturesPage> with AutomaticKeepAliveClie
       if (dataLen > 100) {
         _removeFirstElementOfchartSeries();
       }
+
+      var currentPage = MainPage.pageController.page;
+      if (currentPage != 1.0) return;
+
       if (mounted) {
         setState(() {});
       }

@@ -17,7 +17,7 @@ import '../SSMModule/emulator.dart' as emulator;
 
 class MainPage extends StatefulWidget {
   const MainPage({Key? key}) : super(key: key);
-
+  static final pageController = PageController(initialPage: 0);
   @override
   State<MainPage> createState() => _MainPageState();
 }
@@ -31,20 +31,24 @@ class _MainPageState extends State<MainPage> {
   List<PageState> pageStates = [];
   bool isSSMConnected = false;
   bool autoStartProcessDone = false;
-  final _pageController = PageController(initialPage: 0);
   var bottomNavSelectedIconColor = Colors.blue;
   var appBarBackgroundColor = Colors.blue;
   Color bottomNavNotSelectedIconColor = Colors.white;
+  var currentIndexOfBottomNav = 0;
+  List<BottomNavigationBarItem> bottomNaviga = [];
 
   @override
   void initState() {
     super.initState();
+    pageStates = getPageStates();
+    bottomNaviga = _getBottomNavBar();
     emulator.start('127.0.0.1', 5000);
+
     User.loadSetting().then((value) async {
       await tryConnectToSSM(value);
       setState(() {
         bottomNavNotSelectedIconColor = User.setting.appTheme == 'dark' ? Colors.white : Colors.black54;
-        pageStates = getPageStates();
+
         _renderUI(0);
         getDeviceWifiInfo().then((value) => print(value?.toJson()));
       });
@@ -54,7 +58,7 @@ class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     PageView pageView = PageView(
-      controller: _pageController,
+      controller: MainPage.pageController,
       children: _getPageWidgets(),
       onPageChanged: _renderUI,
     );
@@ -78,21 +82,21 @@ class _MainPageState extends State<MainPage> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: pageView,
-      bottomNavigationBar: SizedBox(
-        height: 78,
-        width: double.infinity,
-        child: Padding(
-          padding: const EdgeInsets.all(1.0),
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: _getBottomNavBar(),
-              ),
-            ),
-          ),
-        ),
+      bottomNavigationBar: BottomNavigationBar(
+        showSelectedLabels: true,
+        showUnselectedLabels: true,
+        unselectedItemColor: Colors.white,
+        unselectedFontSize: 12,
+        iconSize: 9,
+        type: BottomNavigationBarType.fixed,
+        currentIndex: currentIndexOfBottomNav,
+        onTap: (index) {
+          action(index, title);
+          setState(() {
+            currentIndexOfBottomNav = index;
+          });
+        },
+        items: bottomNaviga,
       ),
       // persistentFooterButtons: _getBottomNavBar(),
     );
@@ -132,7 +136,7 @@ class _MainPageState extends State<MainPage> {
   }
 
   void action(int index, String title) {
-    _pageController.jumpToPage(index);
+    MainPage.pageController.jumpToPage(index);
     setState(() {
       title = title;
       _renderUI(index);
@@ -201,57 +205,27 @@ class _MainPageState extends State<MainPage> {
   }
 
   ///創建底部導航按鈕組
-  List<Widget> _getBottomNavBar() {
-    List<Widget> ls = [];
+  List<BottomNavigationBarItem> _getBottomNavBar() {
+    List<BottomNavigationBarItem> ls = [];
     List.generate(pageStates.length, (index) {
       var state = pageStates[index];
       dynamic icon = state.icon;
-      Color iconColor = state.iconColor;
-      dynamic tets = ElevatedButton(
-        onPressed: () => {action(index, state.title)},
-        style: ElevatedButton.styleFrom(shape: const RoundedRectangleBorder(), onPrimary: iconColor, primary: Colors.transparent, shadowColor: Colors.transparent),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            icon,
-            Text(
-              state.title,
-              style: const TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-              ),
-            )
-          ],
-        ),
-      );
-
-      ls.add(Padding(
-        padding: const EdgeInsets.all(1.0),
-        child: tets,
-      ));
+      ls.add(BottomNavigationBarItem(icon: icon, label: state.title));
     });
-
-    return <Widget>[
-      Padding(
-          padding: const EdgeInsets.all(1),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: ls,
-          ))
-    ];
+    return ls;
   }
 
   ///頁面變更時變更底部導航按鈕ICON的顏色與APP BAR TITLE
   void _renderUI(int activeIndex) {
     setState(() {
-      for (var element in pageStates) {
-        element.iconColor = bottomNavNotSelectedIconColor;
-      }
-      PageState pageState = pageStates[activeIndex];
-      pageState.iconColor = bottomNavSelectedIconColor;
-      appBarRightWidget = pageState.appBarWidget;
-
-      title = pageState.title;
+      // for (var element in pageStates) {
+      //   element.iconColor = bottomNavNotSelectedIconColor;
+      // }
+      // PageState pageState = pageStates[activeIndex];
+      // pageState.iconColor = bottomNavSelectedIconColor;
+      // appBarRightWidget = pageState.appBarWidget;
+      // title = pageState.title;
+      currentIndexOfBottomNav = activeIndex;
 
       ///
       if (activeIndex == 2) {

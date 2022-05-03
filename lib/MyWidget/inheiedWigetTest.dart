@@ -9,6 +9,8 @@ class ShareDataWidget extends InheritedWidget {
     return context.dependOnInheritedWidgetOfExactType();
   }
 
+  
+
   @override
   bool updateShouldNotify(ShareDataWidget oldWidget) {
     return oldWidget.module.dataUpdateTime != oldWidget.module.dataUpdateTime;

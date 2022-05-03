@@ -24,7 +24,12 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo -20220414',
-      theme: ThemeData(primarySwatch: Colors.blue, backgroundColor: Colors.black, primaryColor: Colors.black, brightness: Brightness.dark),
+      theme: ThemeData(
+          primarySwatch: Colors.blue,
+          bottomNavigationBarTheme: const BottomNavigationBarThemeData(backgroundColor: Color.fromARGB(255, 32, 32, 32), selectedItemColor: Colors.blue),
+          backgroundColor: Colors.black,
+          primaryColor: Colors.black,
+          brightness: Brightness.dark),
       themeMode: ThemeMode.dark,
       debugShowCheckedModeBanner: true,
       initialRoute: "/",

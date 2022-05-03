@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:ssmflutter/Chartslb/SimpleLineChart.dart';
 import 'package:ssmflutter/Database/SensorData.dart';
 import 'package:ssmflutter/MyWidget/inheiedWigetTest.dart';
+import 'package:ssmflutter/Pages/MainPage.dart';
 import 'package:ssmflutter/Pages/ZoomOutShowPage.dart';
 import 'package:ssmflutter/SSMModule/FeatureDisplay.dart';
 import 'package:ssmflutter/SSMModule/Unit.dart';
@@ -45,7 +46,8 @@ class _HomePageState extends State<HomePage> {
     features = convertByUnit(data.features, UnitSettingCache.homePageUnit);
 
     if (!mounted) return;
-
+    var currentPage = MainPage.pageController.page;
+    if (currentPage != 0.0) return;
     if (!_pause)
       setState(() {
         if (zoomOutPage != null) {
